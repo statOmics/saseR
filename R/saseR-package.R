@@ -1,3 +1,6 @@
+#' @keywords internal
+"_PACKAGE"
+
 #' saseR package for aberrant expression and splicing analysis from bulk
 #' RNA-seq data
 #'
@@ -24,8 +27,10 @@
 #'
 #' @docType package
 #' @name saseR
-#' @aliases saseR
-#' @keywords package
 #' @export
+NULL
 
+
+## usethis namespace: start
+## usethis namespace: end
 NULL

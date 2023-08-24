@@ -28,4 +28,3 @@ Juggling offsets unlocks RNA-seq tools for fast scalable differential usage, abe
 \author{
 Alexandre Segers, Jeroen Gilis, Mattias Van Heetvelde, Elfride De Baere, Lieven Clement
 }
-\keyword{package}
