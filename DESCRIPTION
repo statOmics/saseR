@@ -10,7 +10,7 @@ Authors@R: c(person("Alexandre", "Segers", role = c("aut","cre"),
 	     person("Mattias","Van Heetvelde", role="ctb",
 		     email = "Mattias.Vanheetvelde@ugent.be"),
 	     person("Elfride","De Baere", role="ctb",
-		     email = "Elfride.Debaere@ugent.be")
+		     email = "Elfride.Debaere@ugent.be"),
 	     person("Lieven","Clement", role="ctb",
 		     email = "Lieven.Clement@ugent.be"))
 Description: saseR is a highly performant and fast framework for aberrant expression and splicing analyses. 

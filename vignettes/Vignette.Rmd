@@ -87,6 +87,7 @@ BiocManager::install("saseR")
 Alternatively, the development version of `saseR` can be downloaded with:
  
 ```{r, eval=FALSE}
+library(devtools)
 devtools::install_github("statOmics/saseR")
 ```
 
@@ -94,8 +95,7 @@ devtools::install_github("statOmics/saseR")
 # Load libraries
 
 ```{r, message=FALSE, warning=FALSE}
-library(devtools)
-load_all(".")
+library(saseR)
 library(edgeR)
 library(DESeq2)
 library(limma)
