@@ -1,0 +1,423 @@
+---
+title: 'Main vignette: Aberrant expression and splicing analysis'
+author:
+- name: Alexandre Segers
+- name: Jeroen Gilis
+- name: Mattias Van Heetvelde
+- name: Elfride De Baere
+- name: Lieven Clement
+bibliography: saseR.bib
+date: "23/08/2023"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 3
+  BiocStyle::pdf_document: default
+package: saseR
+abstract: |
+  Main vignette for the saseR package. This vignette aims to provide a detailed 
+  description of an aberrant expression and splicing analysis using saseR. Also,
+  we show how to perform differential usage analysis using adapted offsets
+  in DESeq2 and edgeR.
+vignette: >
+  %\VignetteIndexEntry{Main vignette: saseR analyses}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo = FALSE}
+library(knitr)
+```
+
+# Introduction
+
+`saseR` is a R package to perform aberrant expression and splicing analyses 
+in bulk RNA-seq datasets. The package has two different categories of functions,
+with respectively two and three functions.
+
+First, BAM files need to be transformed to gene, bin or junctions counts. This
+is done by:
+
+1. `BamtoAspliCounts`, which transforms BAM files to different counts using 
+adapted functions of the `ASpli` package. The different counts are given in 
+a `SummarizedExperiment` object in the metadata slots. 
+
+2. `convertAspli` selects the relevant counts (gene, bins or junctions) to 
+be further used in the analyses.
+
+Then, the chosen counts can be further used to perform an aberrant expression
+or splicing analysis with the following functions:
+
+3. `calculateOffsets`, which calculates the offset matrix used in the analysis.
+These offsets can be ordinary `edgeR` or `DESeq2` offsets when performing an
+aberrant expression analysis, or can be the total bin or junction counts 
+aggregated per gene when performing an aberrant splicing analysis. 
+
+4. `saseRfindEncodingDim` estimates the optimal number of latent factors to
+control for unknown confounders. This number of latent factors is then further
+used in the final fit.
+
+5. `saseRfit` calculates the mean expression and feature-specific dispersions 
+for each feature in each sample, controlling for both known and unknown 
+confounders. It calculates p-values which represent how extreme each 
+observation is compared to its distribution. 
+
+Note that one can do a saseR analysis by using readily available count 
+matrices, therefore not requiring to start from BAM files. 
+
+All details about the `saseR` model and statistical tests are described 
+in our publication [@Segers2023].
+
+In this vignette, we analyse the data from the `ASpli` package [@ASpli],
+to show how a workflow is done. Nevertheless, this dataset is not specific 
+for aberrant expression or splicing analyses. The data consists of BAM files 
+which will be converted into gene, bin, and junction reads, on which three
+different `saseR` analysis will be performed (aberrant expression and two times
+an aberrant splicing analysis).
+
+# Package installation
+`saseR` can be installed from Bioconductor with:
+
+```{r, eval=FALSE}
+if(!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("saseR")
+```
+
+Alternatively, the development version of `saseR` can be downloaded with:
+ 
+```{r, eval=FALSE}
+devtools::install_github("statOmics/saseR")
+```
+
+
+# Load libraries
+
+```{r, message=FALSE, warning=FALSE}
+library(devtools)
+load_all(".")
+library(edgeR)
+library(DESeq2)
+library(limma)
+library(GenomicFeatures)
+library(dplyr)
+library(havok)
+library(pracma)
+library(PRROC)
+library(ASpli)
+
+library(BiocParallel)
+library(data.table)
+```
+
+# Transforming BAM to count matrices.
+
+The following data corresponds to the vignette data from the `ASpli`
+package [@ASpli].
+
+The input data required for saseR are BAM files with corresponding BAI files 
+and a genome annotation in TxDb format. These files will be transformed to 
+gene/bin/junction count matrices. When a count matrix is readily available,
+one can just use this to perform an aberrant expression or splicing analysis
+(see section 5 and 6) .
+
+
+First, we specify the path to our GTF file, which we will later transform to
+the TxDb format. Also, we include the pathnames of the BAM files we want to
+include in the analysis.
+
+```{r}
+gtfFileName <- aspliExampleGTF()
+BAMFiles <- aspliExampleBamList()
+
+gtfFileName
+head(BAMFiles)
+```
+
+Then, we define a targets dataframe, which contains the samples, BAM file paths
+and experimental factors column. For the case of Mendelian disorders, we choose
+these experimental factors to be all equal to A. Note that the experimental 
+factors included here will not further be used in the final analysis, but are
+needed to compute the count matrices with functions from `ASpli`. 
+
+```{r}
+targets <- data.frame( 
+  row.names = paste0('Sample',c(1:12)),
+  bam = BAMFiles,
+  f1 = rep("A",12),
+  stringsAsFactors = FALSE)
+
+head(targets)
+```
+Next, we transform our GTF file to TxDb format, and extract the features from
+the annotation using the `binGenome` function from `ASpli`. Note that the 
+binGenome function can take a while.
+
+```{r}
+genomeTxDb <- makeTxDbFromGFF(gtfFileName)
+features <- binGenome(genomeTxDb)
+```
+
+Now that we have the `targets` data.frame containing the samples and BAM file 
+names, and the `features` extracted from the genome annotation, we can obtain
+the count matrices that will be used to detect aberrant expression. This can 
+done with `BamtoAspliCounts`. Note that the counting procedure (featurecounts) 
+can take a while. If only one type of analysis is preferred (e.g. only aberrant
+expression analysis on the gene counts), one can do the feature counting with a
+different method, and start from a count matrix at section 
+5 and 6. Make sure to
+select the right type of `libType` (`SE` for single-end reads, `PE` for 
+paired-end reads), and the `minReadLength`, which is the minimal number of
+bases a read needs to be counted.
+
+```{r}
+ASpliSE <- BamtoAspliCounts(
+                    features = features,
+                    targets = targets,
+                    minReadLength = 100,
+                    libType = "SE",
+                    BPPARAM = MulticoreParam(1L)
+                    )
+```
+
+ASpliSE is a SummarizedExperiment object that contains the gene, bin and 
+junction counts, together with different annotations in the metadata slots. We
+will extract these counts using the `convertASpli` function. 
+
+```{r}
+SEgenes <- convertASpli(ASpliSE, type = "gene")
+SEbins <- convertASpli(ASpliSE, type = "bin")
+SEjunctions <- convertASpli(ASpliSE, type = "junction")
+```
+
+
+# Aberrant expression analysis
+We will show how to perform an aberrant expression analysis based on the gene
+level counts. Note that other feature counts (e.g. bin counts) can also be used
+to search for aberrant expression. We start from a SummarizedExperiment that
+contains the feature counts of interest.
+
+First, a design formula is included in the metadata slot `design`. In this 
+example, we do not include known covariates, but only introduce an intercept.
+If one includes known covariates in the formula, these covariates should be 
+included as columns in the colData slot. 
+
+```{r}
+metadata(SEgenes)$design <- ~1
+```
+
+Then, we need to calculate the offsets for our analysis. For aberrant expression
+analysis, we recommend using `TMM` or `geommean` for edgeR and DESeq2 
+normalisation respectively. This results in an offsets matrix in the assays
+slot. 
+
+```{r}
+SEgenes <- calculateOffsets(SEgenes, method = "TMM")
+```
+
+Having defined the `design` and the `offsets` of the analysis, we can continue
+to estimate the optimal `number of latent confounders` included in the regression 
+framework. This is often needed when performing aberrant expression or splicing 
+analysis to obtain better power. We obtain the latent factors by using `RUV` [@RUV], 
+which performs a `singular value decomposition on the deviance residuals`. Then, 
+we recommend using the Gavish and Donoho [@GavishDonoho] threshold for singular values 
+(`method = GD`) to choose upon the number of
+latent factors included in the final regression model. This is much faster, 
+while having similar performance compared to using a denoising autoencoder 
+(`method = DAE`). 
+
+```{r}
+SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
+```
+
+Having estimated the optimal number of latent factors to include in the 
+regression framework, we can fit our final model, controlling for both known
+confounders (specified in metadata slot `design`) and the latent factors 
+based on the deviance residuals. The final regression fit can be done with 
+edgeR (`fit = edgeR`), but is set to default to our fast parameter estimation
+(`fit = fast`). This fast parameter estimation uses a overdispersed quadratic
+mean-variance relationship, which enables matrix multiplication while keeping
+parameter estimation unbiased.This is often required in the context of rare 
+diseases that need many latent factors to control for, which leads to ordinary
+fitting procedures such as edgeR becoming slow. If the number of confounders
+included in the regression model is small (known confounders + latent factors),
+edgeR parameter estimation could be used, although it is not expected to give an 
+increase in performance. `analysis` is specified on `AE` to choose an aberrant
+expression analysis.
+
+
+```{r}
+SEgenes <- saseRfit(SEgenes,
+                    analysis = "AE",
+                    padjust = "BH",
+                    fit = "fast")
+```
+
+This results in estimates in mean expression, feature specific dispersions
+and p-values calculated for each observation in each sample. Further analysing
+the top prioritised genes within each sample is possible using for example:
+
+```{r}
+order <- apply(assays(SEgenes)$pValue, 2, order, decreasing = F)
+
+toppvals <- sapply(1:ncol(SEgenes), 
+                   function(x) {assays(SEgenes)$pValue[order[1:5,x],x]})
+
+toppvals <- sapply(1:ncol(SEgenes), 
+                   function(x) {rownames(SEgenes)[order[1:5,x]]})
+
+significantgenes <- sapply(1:ncol(SEgenes), 
+                   function(x) {rownames(SEgenes)[assays(SEgenes)$pValueAdjust[,x] < 0.05]})
+
+
+head(toppvals)
+head(toppvals)
+head(significantgenes)
+```
+
+# Aberrant splicing analysis
+
+We will show how to perform an aberrant splicing analysis based on the bin and
+junction level counts. Note that other feature counts can also be used if 
+proportions of interest are to be modelled, which only requires the use of the
+correct offsets. We start from a SummarizedExperiment that contains the feature 
+counts of interest.
+
+First, a design formula is included in the metadata slot `design`. In this 
+example, we do not include known covariates, but only introduce an intercept.
+If one includes known covariates in the formula, these covariates should be 
+included as columns in the colData slot. 
+
+```{r}
+metadata(SEbins)$design <- ~1
+metadata(SEjunctions)$design <- ~1
+
+```
+
+Then, we need to calculate the offsets for our analysis. For an aberrant 
+splicing analysis, `AS` or `proportion` should be used as method to calculate 
+offsets that allow to model proportions. This results in an offsets matrix in 
+the assays slot. We specificy the column in the rowData slot which is used
+to aggregate feature counts to obtain proper offsets (`aggregation`). This is 
+the `locus` column for the bins analysis, and the `symbol` or `ASpliCluster` 
+column for a junctions analysis. For the junctions analysis, it is also 
+possible to use aggregation based on `symbol` (= gene) whenever an annotated
+gene is available, and switch to `ASpliCluster` when the junction is not linked
+to a specific gene. This is done by setting `mergeGeneASpli` equal to TRUE. 
+Note that a new column in the rowData will be made, `locus`, which specifies
+the used aggregation. 
+
+Note that also other rowData columns can be used to aggregate feature counts, 
+and also a predefined offsets matrix can be included as `offsets` in the
+assays slot.
+
+
+```{r}
+SEbins <- calculateOffsets(SEbins, 
+                            method = "AS", 
+                            aggregation = "locus")
+
+SEjunctions <- calculateOffsets(SEjunctions, 
+                            method = "AS", 
+                            aggregation = "symbol",
+                            mergeGeneASpli = TRUE)
+
+```
+
+Having defined the `design` and the `offsets` of the analysis, we can continue
+to estimate the optimal `number of latent confounders` included in the regression 
+framework. This is often needed when performing aberrant expression or splicing 
+analysis to obtain better power. We obtain the latent factors by using `RUV` [@RUV], 
+which performs a `singular value decomposition on the deviance residuals`. Then, 
+we recommend using the Gavish and Donoho [@GavishDonoho] threshold for singular values 
+(`method = GD`) to choose upon the number of
+latent factors included in the final regression model. This is much faster, 
+while having similar performance compared to using a denoising autoencoder 
+(`method = DAE`). 
+
+```{r}
+SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
+SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
+
+```
+
+Having estimated the optimal number of latent factors to include in the 
+regression framework, we can fit our final model, controlling for both known
+confounders (specified in metadata slot `design`) and the latent factors 
+based on the deviance residuals. The final regression fit can be done with 
+edgeR (`fit = edgeR`), but is set to default to our fast parameter estimation
+(`fit = fast`). This fast parameter estimation uses a overdispersed quadratic
+mean-variance relationship, which enables matrix multiplication while keeping
+parameter estimation unbiased.This is often required in the context of rare 
+diseases that need many latent factors to control for, which leads to ordinary
+fitting procedures such as edgeR becoming slow. If the number of confounders
+included in the regression model is small (known confounders + latent factors),
+edgeR parameter estimation could be used, although it is not expected to give an 
+increase in performance. `analysis` is specified on `AS` to choose an aberrant
+splicing analysis.
+
+
+```{r}
+SEbins <- saseRfit(SEbins,
+                    analysis = "AS",
+                    padjust = "BH",
+                    fit = "fast")
+
+SEjunctions <- saseRfit(SEjunctions,
+                    analysis = "AS",
+                    padjust = "BH",
+                    fit = "fast")
+```
+
+This results in estimates in mean expression, feature specific dispersions
+and p-values calculated for each observation in each sample. Further analysing
+the top prioritised features within each sample is possible using for example:
+
+```{r}
+order <- apply(assays(SEbins)$pValue, 2, order, decreasing = F)
+
+topPvalsBins <- sapply(1:ncol(SEbins), 
+                   function(x) {assays(SEbins)$pValue[order[1:5,x],x]})
+
+topBins <- sapply(1:ncol(SEbins), 
+                   function(x) {rownames(SEbins)[order[1:5,x]]})
+
+significantBins <- sapply(1:ncol(SEbins), 
+                   function(x) {rownames(SEbins)[assays(SEgenes)$pValueAdjust[,x] < 0.05]})
+
+head(topPvalsBins)
+head(topBins)
+head(significantBins)
+```
+Furthermore, also aggregated p-values are calculated based on the newly formed 
+`locus` column in the rowData slot. These are currently the minimal p-value
+of each feature belonging to the same aggregation group, and can be found in
+the metadata slot under `pValuesLocus`.
+
+```{r}
+order <- apply(metadata(SEbins)$pValuesLocus, 2, order, decreasing = F)
+
+topPvalsBinsAggregated <- sapply(1:ncol(SEbins), 
+                   function(x) {metadata(SEbins)$pValuesLocus[order[1:5,x],x]})
+
+topBinsAggregated <- sapply(1:ncol(SEbins), 
+                   function(x) {rownames(metadata(SEbins)$pValuesLocus)[order[1:5,x]]})
+
+significantBinsAggregated <- sapply(1:ncol(SEbins), 
+                   function(x) {rownames(SEbins)[metadata(SEgenes)$pValuesLocus[,x] < 0.05]})
+
+head(topPvalsBinsAggregated)
+head(topBinsAggregated)
+head(significantBinsAggregated)
+```
+
+
+# Session info
+
+```{r}
+sessionInfo()
+```
+
+# References
+
+
