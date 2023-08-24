@@ -78,18 +78,56 @@ slot.
 }
 \examples{
 
-CountMatrix <- matrix(rnbinom(n = 1000, mu = 10, size = 5), ncol = 20, nrow = 50)
-Metadata <- c(rep(c("Male","Female"), each = 10))
-se <- SummarizedExperiment::SummarizedExperiment(
-assays = list("counts" = CountMatrix),
- colData = data.frame("Sex" = Metadata),
- metadata = list(design = ~Sex))
-se <- findEncodingDimRUV(se = se, dimensions = c(0:10))
-se <- fitRUVMD(se = se)
-SummarizedExperiment::assays(se)[["mu"]][1:5,1:5]
-SummarizedExperiment::assays(se)[["pValue"]][1:5,1:5]
-SummarizedExperiment::assays(se)[["pValueAdjust"]][1:5,1:5]
-SummarizedExperiment::rowData(se)[["theta"]][1:5]
-S4Vectors::metadata(se)[["optimalEncDim"]]
+gtfFileName <- aspliExampleGTF()
+BAMFiles <- aspliExampleBamList()
+targets <- data.frame(
+    row.names = paste0('Sample',c(1:12)),
+    bam = BAMFiles,
+    f1 = rep("A",12),
+    stringsAsFactors = FALSE)
+genomeTxDb <- makeTxDbFromGFF(gtfFileName)
+features <- binGenome(genomeTxDb)
+
+ASpliSE <- BamtoAspliCounts(
+    features = features,
+    targets = targets,
+    minReadLength = 100,
+    libType = "SE",
+    BPPARAM = MulticoreParam(1L)
+)
+
+SEgenes <- convertASpli(ASpliSE, type = "gene")
+SEbins <- convertASpli(ASpliSE, type = "bin")
+SEjunctions <- convertASpli(ASpliSE, type = "junction")
+
+metadata(SEgenes)$design <- ~1
+metadata(SEbins)$design <- ~1
+metadata(SEjunctions)$design <- ~1
+
+SEgenes <- calculateOffsets(SEgenes, method = "TMM")
+SEbins <- calculateOffsets(SEbins,
+                           method = "AS",
+                           aggregation = "locus")
+SEjunctions <- calculateOffsets(SEjunctions,
+                                method = "AS",
+                                aggregation = "symbol",
+                                mergeGeneASpli = TRUE)
+
+SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
+SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
+SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
+
+SEgenes <- saseRfit(SEgenes,
+                    analysis = "AE",
+                    padjust = "BH",
+                    fit = "fast")
+SEbins <- saseRfit(SEbins,
+                   analysis = "AS",
+                   padjust = "BH",
+                   fit = "fast")
+SEjunctions <- saseRfit(SEjunctions,
+                        analysis = "AS",
+                        padjust = "BH",
+                        fit = "fast")
 
 }

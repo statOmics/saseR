@@ -4,7 +4,6 @@ setGeneric("getDesign", function(object) standardGeneric("getDesign"))
 setGeneric("getSizeFactors", function(object) standardGeneric("getSizeFactors"))
 setGeneric("counts", function(object) standardGeneric("counts"))
 setGeneric("metadata", function(object) standardGeneric("metadata"))
-# setGeneric("assays", function(object) standardGeneric("assays"))
 
 
 
@@ -27,8 +26,3 @@ setMethod("metadata",
           signature = "SummarizedExperiment",
           definition = function(object) object@metadata
 )
-#
-# setMethod("assays",
-#           signature = "SummarizedExperiment",
-#           definition = function(object) object@assays
-# )

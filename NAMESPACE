@@ -3,6 +3,7 @@
 export(BamtoAspliCounts)
 export(calculateOffsets)
 export(convertASpli)
+export(saseR)
 export(saseRfindEncodingDim)
 export(saseRfit)
 import(ASpli)
