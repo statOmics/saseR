@@ -18,6 +18,8 @@ counts in the metadata slot.}
 \item{filter}{logical value specifying to filter bin counts based on the
 type of bin. Regions that contain both intronic and exonic regions are
 filtered as the intron and exon bins are already defined in other features.}
+
+\item{...}{extra parameters for filtering.}
 }
 \value{
 A `SummarizedExperiment` instance, representing the `gene`, `bin` or
@@ -29,6 +31,7 @@ a SummarizedExperiment object containing these three in the metadata slot.
 }
 \examples{
 
+\dontrun{
 gtfFileName <- aspliExampleGTF()
 BAMFiles <- aspliExampleBamList()
 targets <- data.frame(
@@ -80,5 +83,5 @@ SEjunctions <- saseRfit(SEjunctions,
                         analysis = "AS",
                         padjust = "BH",
                         fit = "fast")
-
+}
 }

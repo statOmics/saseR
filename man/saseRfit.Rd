@@ -75,6 +75,7 @@ of aberrant expression or splicing.
 }
 \examples{
 
+\dontrun{
 gtfFileName <- aspliExampleGTF()
 BAMFiles <- aspliExampleBamList()
 targets <- data.frame(
@@ -126,5 +127,5 @@ SEjunctions <- saseRfit(SEjunctions,
                         analysis = "AS",
                         padjust = "BH",
                         fit = "fast")
-
+}
 }

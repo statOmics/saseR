@@ -21,10 +21,13 @@
 #' type of bin. Regions that contain both intronic and exonic regions are
 #' filtered as the intron and exon bins are already defined in other features.
 #'
+#' @param ... extra parameters for filtering.
+#'
 
 #' @return A `SummarizedExperiment` instance, representing the `gene`, `bin` or
 #' `junction` counts as specified.
 #'
+#' @import ASpli
 #' @import edgeR
 #' @import MASS
 #' @import pracma
@@ -32,15 +35,19 @@
 #' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
-#' @import S4Vectors
-#' @importFrom limma lmFit
+#' @import methods
+#' @import havok
+#' @import GenomicRanges
+#' @import DESeq2
+#' @importFrom rrcov PcaHubert
+#' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom DESeq2 DESeqDataSet
-#'
+#' @importFrom stats aggregate median model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
 #' @examples
 #'
-#'gtfFileName <- aspliExampleGTF()
+#' \dontrun{
+#' gtfFileName <- aspliExampleGTF()
 #' BAMFiles <- aspliExampleBamList()
 #' targets <- data.frame(
 #'     row.names = paste0('Sample',c(1:12)),
@@ -91,7 +98,7 @@
 #'                         analysis = "AS",
 #'                         padjust = "BH",
 #'                         fit = "fast")
-#'
+#'}
 #' @export
 #'
 #'

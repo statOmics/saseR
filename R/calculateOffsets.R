@@ -39,7 +39,7 @@
 #' it is not recommended to specify `zeroCountOffsets` greater than
 #' `zeroOffsets`.
 #'
-#' @param zeroCountOffsets When using the `AS` or `proportion` method, it is
+#' @param zeroOffsets When using the `AS` or `proportion` method, it is
 #' possible that some offsets are 0. As offsets need to be a strict positive
 #' value, these offsets are changed to a strict positive number (defined by
 #' `zeroOffsets`, with a default of 1). The corresponding count can also be
@@ -56,7 +56,7 @@
 #' @param filterna logical value to filter NA locus values in rowData.
 #' These are not necessarily features without annotated gene.
 #'
-#'  @param saveall logical value to save all aggregated counts and offsets.
+#' @param saveall logical value to save all aggregated counts and offsets.
 #'  Default is FALSE to save memory. If TRUE, also counts and offsets of
 #'  gene-level aggregation and ASpli-cluster aggregation are saved, instead of
 #'  only using the final used counts and offsets.
@@ -72,6 +72,7 @@
 #' adapted counts and offsets using the `locus` rowData column, and using the
 #' `symbol` rowData column respectively.
 #'
+#' @import ASpli
 #' @import edgeR
 #' @import MASS
 #' @import pracma
@@ -79,15 +80,18 @@
 #' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
-#' @import S4Vectors
-#' @importFrom limma lmFit
+#' @import methods
+#' @import havok
+#' @import GenomicRanges
+#' @import DESeq2
+#' @importFrom rrcov PcaHubert
+#' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom DESeq2 DESeqDataSet
-#'
+#' @importFrom stats aggregate median model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
 #' @examples
-#'
-#'gtfFileName <- aspliExampleGTF()
+#' \dontrun{
+#' gtfFileName <- aspliExampleGTF()
 #' BAMFiles <- aspliExampleBamList()
 #' targets <- data.frame(
 #'     row.names = paste0('Sample',c(1:12)),
@@ -138,7 +142,7 @@
 #'                         analysis = "AS",
 #'                         padjust = "BH",
 #'                         fit = "fast")
-#'
+#'}
 #' @export
 #'
 #'

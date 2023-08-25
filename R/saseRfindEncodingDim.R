@@ -26,13 +26,13 @@
 #'  This formula must be based on the colData, and should be `~1` if no known
 #'  covariates are included.
 #'
-#'  @param method The method used to estimate the optimal number of latent
+#' @param method The method used to estimate the optimal number of latent
 #'  factors included in the regression framework. Default is `GD`, which uses
 #'  the Gavish and Donoho threshold for singular values. `DAE` will use a
 #'  Denoising autoencoder, but will require longer computation time without
 #'  increased performance.
 #'
-#'  @param analysis `AE` for aberrant expression analysis and `AS` for aberrant
+#' @param analysis `AE` for aberrant expression analysis and `AS` for aberrant
 #'  splicing analysis. Used to insert corrupted counts when using the `DAE`
 #'  method.
 
@@ -67,6 +67,8 @@
 #' @param aggregation character vector representing the column in the rowData
 #' to be used to calculate offsets when injecting corrupted counts according to
 #' aberrant splicing. Only used when method is `DAE` and when analysis is `AE`.
+#' @param ... Extra arguments for .fitRUV.
+
 
 #' @return An updated 'SummarizedExperiment' instance, now including:
 #' `optimalEncDim` in the metadata slot, representing the estimated optimal
@@ -80,6 +82,7 @@
 #' decomposition of the deviance residuals. `encDimTable` a data.table in the
 #' metadata slot which represents the area under the curve to search for
 #' corrupted counts at the different dimensions when using the `DAE` method.
+#' @import ASpli
 #' @import edgeR
 #' @import MASS
 #' @import pracma
@@ -87,13 +90,18 @@
 #' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
-#' @import S4Vectors
-#' @importFrom limma lmFit
+#' @import methods
+#' @import havok
+#' @import GenomicRanges
+#' @import DESeq2
+#' @importFrom rrcov PcaHubert
+#' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table
-#' @importFrom DESeq2 DESeqDataSet
 #' @importFrom BiocParallel bplapply bpparam
-#'
+#' @importFrom stats aggregate median model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
 #' @examples
+#'
+#' \dontrun{
 #' gtfFileName <- aspliExampleGTF()
 #' BAMFiles <- aspliExampleBamList()
 #' targets <- data.frame(
@@ -146,7 +154,7 @@
 #'                         padjust = "BH",
 #'                         fit = "fast")
 #'
-#'
+#'}
 #' @export
 
 saseRfindEncodingDim <- function(se,
@@ -699,7 +707,7 @@ saseRfindEncodingDim <- function(se,
 # Adapted from OUTRIDER - Brechtmann et al.
 .getBestQ <- function(se){
     if('optimalEncDim' %in% names(metadata(se))){
-        return(metadata(ods)[['optimalEncDim']])
+        return(metadata(se)[['optimalEncDim']])
     }
 
     if('encDimTable' %in% names(metadata(se))){

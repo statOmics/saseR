@@ -63,6 +63,7 @@
 #' aggregated p-value is provided based on the `locus` column in the rowData.
 #' This is calculated by taking the minimal p-values.
 #'
+#' @import ASpli
 #' @import edgeR
 #' @import MASS
 #' @import pracma
@@ -70,14 +71,20 @@
 #' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
-#' @import S4Vectors
-#' @importFrom limma lmFit
+#' @import methods
+#' @import havok
+#' @import GenomicRanges
+#' @import DESeq2
+#' @importFrom rrcov PcaHubert
+#' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom DESeq2 DESeqDataSet
+#' @importFrom stats aggregate median model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
+#'
 #'
 #' @examples
 #'
+#' \dontrun{
 #' gtfFileName <- aspliExampleGTF()
 #' BAMFiles <- aspliExampleBamList()
 #' targets <- data.frame(
@@ -129,7 +136,7 @@
 #'                         analysis = "AS",
 #'                         padjust = "BH",
 #'                         fit = "fast")
-#'
+#'}
 #' @export
 
 
@@ -279,7 +286,7 @@ saseRfit <- function(se,
     assay(se, 'mu', withDimnames=FALSE) <- mu
 
 
-    DGE <- .fitEdgeRDisp(se=se, offset=mu, design=~1)
+    DGE <- .fitEdgeRDisp(se=se, offsets=mu, design=~1)
     theta <- 1/DGE$tagwise.dispersion
     rowData(se)$theta <- theta
 

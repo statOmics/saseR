@@ -44,9 +44,9 @@
 #' exon-intron boundary.
 #'
 #'
-#'  @param threshold Minimum number of reads supporting junctions. Default=5.
+#' @param threshold Minimum number of reads supporting junctions. Default=5.
 #'
-#'  @param BPPARAM object of class \code{bpparamClass} that specifies the
+#' @param BPPARAM object of class \code{bpparamClass} that specifies the
 #' back-end to be used for computations. See
 #' \code{bpparam} in \code{BiocParallel} package for details.
 #'
@@ -54,6 +54,7 @@
 #' @return A `SummarizedExperiment` instance, containing `gene`, `bin` and
 #' `junction` counts in the metadata slot.
 #'
+#' @import ASpli
 #' @import edgeR
 #' @import MASS
 #' @import pracma
@@ -61,17 +62,20 @@
 #' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
-#' @import S4Vectors
-#' @import ASpli
-#' @import GenomicFeatures
-#' @importFrom limma lmFit
+#' @import methods
+#' @import havok
+#' @import GenomicRanges
+#' @import DESeq2
+#' @importFrom rrcov PcaHubert
+#' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom DESeq2 DESeqDataSet
+#' @importFrom stats aggregate median model.matrix p.adjust pnbinom pnorm qnbinom rlnorm rmultinom runif
 #'
 #' @examples
 #'
-#'gtfFileName <- aspliExampleGTF()
+#' \dontrun{
+#' gtfFileName <- aspliExampleGTF()
 #' BAMFiles <- aspliExampleBamList()
 #' targets <- data.frame(
 #'     row.names = paste0('Sample',c(1:12)),
@@ -122,7 +126,7 @@
 #'                         analysis = "AS",
 #'                         padjust = "BH",
 #'                         fit = "fast")
-#'
+#'}
 #' @export
 #'
 #'
@@ -149,7 +153,7 @@ BamtoAspliCounts <- function(
                            BPPARAM = BPPARAM)
 
 
-    jcounts <- ASpli:::jCounts(counts= counts,
+    jcounts <- ASpli::jCounts(counts= counts,
                                features = features,
                                minReadLength = minReadLength,
                                threshold = 5,
@@ -324,7 +328,7 @@ BamtoAspliCounts <- function(
     counts@junction.counts <- counts@junction.counts[junctions.order, ]
 
     # Create result object
-    counts <- ASpli:::rds( counts, targets )
+    counts <- ASpli::rds( counts, targets )
     gc()
     return(counts)
 
@@ -340,16 +344,16 @@ BamtoAspliCounts <- function(
                           libType=libType,
                           strandMode=strandMode){
 
-    bam <- ASpli:::loadBAM(targets, cores = NULL,
+    bam <- ASpli::loadBAM(targets, cores = NULL,
                            libType=libType,
                            strandMode=strandMode)
 
     # Count Genes
-    gene.hits <- ASpli:::.counterGenes( bam, featuresg( features ))
+    gene.hits <- ASpli:::.counterGenes( bam, ASpli::featuresg( features ))
     counts@gene.counts <- gene.hits
 
     # Count exons
-    bins <- ASpli:::featuresb( features )
+    bins <- ASpli::featuresb( features )
     exons.hits <- ASpli:::.counterBin( bam, bins, gene.hits)
     counts@exon.intron.counts <- exons.hits
 

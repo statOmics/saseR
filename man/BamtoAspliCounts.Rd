@@ -47,12 +47,11 @@ This mode should be used when the paired-end data was generated using one of
  TruSeq PE protocol. For more information see ?strandMode}
 
 \item{minAnchor}{Minimum percentage of read that should be aligned to an
-exon-intron boundary.
+exon-intron boundary.}
 
+\item{threshold}{Minimum number of reads supporting junctions. Default=5.}
 
- @param threshold Minimum number of reads supporting junctions. Default=5.
-
- @param BPPARAM object of class \code{bpparamClass} that specifies the
+\item{BPPARAM}{object of class \code{bpparamClass} that specifies the
 back-end to be used for computations. See
 \code{bpparam} in \code{BiocParallel} package for details.}
 }
@@ -68,6 +67,7 @@ found in the corresponding package and paper.
 }
 \examples{
 
+\dontrun{
 gtfFileName <- aspliExampleGTF()
 BAMFiles <- aspliExampleBamList()
 targets <- data.frame(
@@ -119,5 +119,5 @@ SEjunctions <- saseRfit(SEjunctions,
                         analysis = "AS",
                         padjust = "BH",
                         fit = "fast")
-
+}
 }

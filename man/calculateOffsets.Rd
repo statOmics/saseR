@@ -43,6 +43,14 @@ changed, with a default change to 1. Note that, although it is possible,
 it is not recommended to specify `zeroCountOffsets` greater than
 `zeroOffsets`.}
 
+\item{zeroOffsets}{When using the `AS` or `proportion` method, it is
+possible that some offsets are 0. As offsets need to be a strict positive
+value, these offsets are changed to a strict positive number (defined by
+`zeroOffsets`, with a default of 1). The corresponding count can also be
+changed, with a default change to 1. Note that, although it is possible,
+it is not recommended to specify `zeroCountOffsets` greater than
+`zeroOffsets`.}
+
 \item{mergeGeneASpli}{logical value. When ASpli is used to obtain feature
 counts, one can aggregate feature counts to calculate offsets based on
 both gene-level or ASpli-cluster. When `mergeGeneASpli` is TRUE, one uses
@@ -50,12 +58,12 @@ gene-level aggregation, except where no annotated gene is available, and
 use ASpli-cluster aggregation for these features.}
 
 \item{filterna}{logical value to filter NA locus values in rowData.
-These are not necessarily features without annotated gene.
+These are not necessarily features without annotated gene.}
 
- @param saveall logical value to save all aggregated counts and offsets.
- Default is FALSE to save memory. If TRUE, also counts and offsets of
- gene-level aggregation and ASpli-cluster aggregation are saved, instead of
- only using the final used counts and offsets.}
+\item{saveall}{logical value to save all aggregated counts and offsets.
+Default is FALSE to save memory. If TRUE, also counts and offsets of
+gene-level aggregation and ASpli-cluster aggregation are saved, instead of
+only using the final used counts and offsets.}
 }
 \value{
 An updated `SummarizedExperiment` instance, now including an
@@ -77,7 +85,7 @@ per gene to perform aberrant splicing analysis. It returns a
 slot.
 }
 \examples{
-
+\dontrun{
 gtfFileName <- aspliExampleGTF()
 BAMFiles <- aspliExampleBamList()
 targets <- data.frame(
@@ -129,5 +137,5 @@ SEjunctions <- saseRfit(SEjunctions,
                         analysis = "AS",
                         padjust = "BH",
                         fit = "fast")
-
+}
 }

@@ -30,17 +30,17 @@ include `offsets` in the assays slot, which can be calculated with the
 `calculateOffsets` function.
 Finally, specify the experimental `design` as a formula in the metadata slot.
  This formula must be based on the colData, and should be `~1` if no known
- covariates are included.
+ covariates are included.}
 
- @param method The method used to estimate the optimal number of latent
- factors included in the regression framework. Default is `GD`, which uses
- the Gavish and Donoho threshold for singular values. `DAE` will use a
- Denoising autoencoder, but will require longer computation time without
- increased performance.
+\item{method}{The method used to estimate the optimal number of latent
+factors included in the regression framework. Default is `GD`, which uses
+the Gavish and Donoho threshold for singular values. `DAE` will use a
+Denoising autoencoder, but will require longer computation time without
+increased performance.}
 
- @param analysis `AE` for aberrant expression analysis and `AS` for aberrant
- splicing analysis. Used to insert corrupted counts when using the `DAE`
- method.}
+\item{analysis}{`AE` for aberrant expression analysis and `AS` for aberrant
+splicing analysis. Used to insert corrupted counts when using the `DAE`
+method.}
 
 \item{dimensions}{A vector containing the number of latent factors that are
 compared in the grid search for the optimal number of latent factors. Only
@@ -71,6 +71,8 @@ back-end to be used for computations. See
 \item{aggregation}{character vector representing the column in the rowData
 to be used to calculate offsets when injecting corrupted counts according to
 aberrant splicing. Only used when method is `DAE` and when analysis is `AE`.}
+
+\item{...}{Extra arguments for .fitRUV.}
 }
 \value{
 An updated 'SummarizedExperiment' instance, now including:
@@ -94,6 +96,8 @@ the Gavish and Donoho threshold for singular values, or by using a
 denoising autoencoder, as described in our corresponding paper
 }
 \examples{
+
+\dontrun{
 gtfFileName <- aspliExampleGTF()
 BAMFiles <- aspliExampleBamList()
 targets <- data.frame(
@@ -146,5 +150,5 @@ SEjunctions <- saseRfit(SEjunctions,
                         padjust = "BH",
                         fit = "fast")
 
-
+}
 }
