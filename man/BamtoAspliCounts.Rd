@@ -67,57 +67,13 @@ found in the corresponding package and paper.
 }
 \examples{
 
-\dontrun{
-gtfFileName <- aspliExampleGTF()
-BAMFiles <- aspliExampleBamList()
-targets <- data.frame(
-    row.names = paste0('Sample',c(1:12)),
-    bam = BAMFiles,
-    f1 = rep("A",12),
-    stringsAsFactors = FALSE)
-genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-features <- binGenome(genomeTxDb)
+data(saseRExample, package = "saseR")
 
 ASpliSE <- BamtoAspliCounts(
     features = features,
     targets = targets,
     minReadLength = 100,
-    libType = "SE",
-    BPPARAM = MulticoreParam(1L)
+    libType = "SE"
 )
 
-SEgenes <- convertASpli(ASpliSE, type = "gene")
-SEbins <- convertASpli(ASpliSE, type = "bin")
-SEjunctions <- convertASpli(ASpliSE, type = "junction")
-
-metadata(SEgenes)$design <- ~1
-metadata(SEbins)$design <- ~1
-metadata(SEjunctions)$design <- ~1
-
-SEgenes <- calculateOffsets(SEgenes, method = "TMM")
-SEbins <- calculateOffsets(SEbins,
-                           method = "AS",
-                           aggregation = "locus")
-SEjunctions <- calculateOffsets(SEjunctions,
-                                method = "AS",
-                                aggregation = "symbol",
-                                mergeGeneASpli = TRUE)
-
-SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
-SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
-SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
-
-SEgenes <- saseRfit(SEgenes,
-                    analysis = "AE",
-                    padjust = "BH",
-                    fit = "fast")
-SEbins <- saseRfit(SEbins,
-                   analysis = "AS",
-                   padjust = "BH",
-                   fit = "fast")
-SEjunctions <- saseRfit(SEjunctions,
-                        analysis = "AS",
-                        padjust = "BH",
-                        fit = "fast")
-}
 }

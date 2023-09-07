@@ -85,32 +85,9 @@ per gene to perform aberrant splicing analysis. It returns a
 slot.
 }
 \examples{
-\dontrun{
-gtfFileName <- aspliExampleGTF()
-BAMFiles <- aspliExampleBamList()
-targets <- data.frame(
-    row.names = paste0('Sample',c(1:12)),
-    bam = BAMFiles,
-    f1 = rep("A",12),
-    stringsAsFactors = FALSE)
-genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-features <- binGenome(genomeTxDb)
 
-ASpliSE <- BamtoAspliCounts(
-    features = features,
-    targets = targets,
-    minReadLength = 100,
-    libType = "SE",
-    BPPARAM = MulticoreParam(1L)
-)
+data(saseRExample, package = "saseR")
 
-SEgenes <- convertASpli(ASpliSE, type = "gene")
-SEbins <- convertASpli(ASpliSE, type = "bin")
-SEjunctions <- convertASpli(ASpliSE, type = "junction")
-
-metadata(SEgenes)$design <- ~1
-metadata(SEbins)$design <- ~1
-metadata(SEjunctions)$design <- ~1
 
 SEgenes <- calculateOffsets(SEgenes, method = "TMM")
 SEbins <- calculateOffsets(SEbins,
@@ -121,21 +98,4 @@ SEjunctions <- calculateOffsets(SEjunctions,
                                 aggregation = "symbol",
                                 mergeGeneASpli = TRUE)
 
-SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
-SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
-SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
-
-SEgenes <- saseRfit(SEgenes,
-                    analysis = "AE",
-                    padjust = "BH",
-                    fit = "fast")
-SEbins <- saseRfit(SEbins,
-                   analysis = "AS",
-                   padjust = "BH",
-                   fit = "fast")
-SEjunctions <- saseRfit(SEjunctions,
-                        analysis = "AS",
-                        padjust = "BH",
-                        fit = "fast")
-}
 }

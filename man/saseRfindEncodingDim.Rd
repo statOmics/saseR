@@ -17,6 +17,7 @@ saseRfindEncodingDim(
   inj = "both",
   BPPARAM = bpparam(),
   aggregation,
+  scale = TRUE,
   ...
 )
 }
@@ -72,6 +73,8 @@ back-end to be used for computations. See
 to be used to calculate offsets when injecting corrupted counts according to
 aberrant splicing. Only used when method is `DAE` and when analysis is `AE`.}
 
+\item{scale}{boolean. If TRUE, the deviance residuals upon will be scaled to mean 0 and sd = 1 before estimating the latent factors.}
+
 \item{...}{Extra arguments for .fitRUV.}
 }
 \value{
@@ -97,58 +100,11 @@ denoising autoencoder, as described in our corresponding paper
 }
 \examples{
 
-\dontrun{
-gtfFileName <- aspliExampleGTF()
-BAMFiles <- aspliExampleBamList()
-targets <- data.frame(
-    row.names = paste0('Sample',c(1:12)),
-    bam = BAMFiles,
-    f1 = rep("A",12),
-    stringsAsFactors = FALSE)
-genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-features <- binGenome(genomeTxDb)
-
-ASpliSE <- BamtoAspliCounts(
-    features = features,
-    targets = targets,
-    minReadLength = 100,
-    libType = "SE",
-    BPPARAM = MulticoreParam(1L)
-)
-
-SEgenes <- convertASpli(ASpliSE, type = "gene")
-SEbins <- convertASpli(ASpliSE, type = "bin")
-SEjunctions <- convertASpli(ASpliSE, type = "junction")
-
-metadata(SEgenes)$design <- ~1
-metadata(SEbins)$design <- ~1
-metadata(SEjunctions)$design <- ~1
-
-SEgenes <- calculateOffsets(SEgenes, method = "TMM")
-SEbins <- calculateOffsets(SEbins,
-                           method = "AS",
-                           aggregation = "locus")
-SEjunctions <- calculateOffsets(SEjunctions,
-                                method = "AS",
-                                aggregation = "symbol",
-                                mergeGeneASpli = TRUE)
+data(saseRExample, package = "saseR")
 
 SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
 SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
 SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
 
-SEgenes <- saseRfit(SEgenes,
-                    analysis = "AE",
-                    padjust = "BH",
-                    fit = "fast")
-SEbins <- saseRfit(SEbins,
-                   analysis = "AS",
-                   padjust = "BH",
-                   fit = "fast")
-SEjunctions <- saseRfit(SEjunctions,
-                        analysis = "AS",
-                        padjust = "BH",
-                        fit = "fast")
 
-}
 }

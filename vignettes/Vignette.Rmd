@@ -257,7 +257,7 @@ and p-values calculated for each observation in each sample. Further analysing
 the top prioritised genes within each sample is possible using for example:
 
 ```{r}
-order <- apply(assays(SEgenes)$pValue, 2, order, decreasing = F)
+order <- apply(assays(SEgenes)$pValue, 2, order, decreasing = FALSE)
 
 toppvals <- sapply(1:ncol(SEgenes), 
                    function(x) {assays(SEgenes)$pValue[order[1:5,x],x]})
@@ -373,7 +373,7 @@ and p-values calculated for each observation in each sample. Further analysing
 the top prioritised features within each sample is possible using for example:
 
 ```{r}
-order <- apply(assays(SEbins)$pValue, 2, order, decreasing = F)
+order <- apply(assays(SEbins)$pValue, 2, order, decreasing = FALSE)
 
 topPvalsBins <- sapply(1:ncol(SEbins), 
                    function(x) {assays(SEbins)$pValue[order[1:5,x],x]})
@@ -394,7 +394,7 @@ of each feature belonging to the same aggregation group, and can be found in
 the metadata slot under `pValuesLocus`.
 
 ```{r}
-order <- apply(metadata(SEbins)$pValuesLocus, 2, order, decreasing = F)
+order <- apply(metadata(SEbins)$pValuesLocus, 2, order, decreasing = FALSE)
 
 topPvalsBinsAggregated <- sapply(1:ncol(SEbins), 
                    function(x) {metadata(SEbins)$pValuesLocus[order[1:5,x],x]})

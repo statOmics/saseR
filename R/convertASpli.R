@@ -39,66 +39,20 @@
 #' @import havok
 #' @import GenomicRanges
 #' @import DESeq2
+#' @import IRanges
+#' @import S4Vectors
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats aggregate median model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
 #' @examples
-#'
-#' \dontrun{
-#' gtfFileName <- aspliExampleGTF()
-#' BAMFiles <- aspliExampleBamList()
-#' targets <- data.frame(
-#'     row.names = paste0('Sample',c(1:12)),
-#'     bam = BAMFiles,
-#'     f1 = rep("A",12),
-#'     stringsAsFactors = FALSE)
-#' genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-#' features <- binGenome(genomeTxDb)
-#'
-#' ASpliSE <- BamtoAspliCounts(
-#'     features = features,
-#'     targets = targets,
-#'     minReadLength = 100,
-#'     libType = "SE",
-#'     BPPARAM = MulticoreParam(1L)
-#' )
+#' data(saseRExample, package = "saseR")
 #'
 #' SEgenes <- convertASpli(ASpliSE, type = "gene")
 #' SEbins <- convertASpli(ASpliSE, type = "bin")
 #' SEjunctions <- convertASpli(ASpliSE, type = "junction")
 #'
-#' metadata(SEgenes)$design <- ~1
-#' metadata(SEbins)$design <- ~1
-#' metadata(SEjunctions)$design <- ~1
-#'
-#' SEgenes <- calculateOffsets(SEgenes, method = "TMM")
-#' SEbins <- calculateOffsets(SEbins,
-#'                            method = "AS",
-#'                            aggregation = "locus")
-#' SEjunctions <- calculateOffsets(SEjunctions,
-#'                                 method = "AS",
-#'                                 aggregation = "symbol",
-#'                                 mergeGeneASpli = TRUE)
-#'
-#' SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
-#' SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
-#' SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
-#'
-#' SEgenes <- saseRfit(SEgenes,
-#'                     analysis = "AE",
-#'                     padjust = "BH",
-#'                     fit = "fast")
-#' SEbins <- saseRfit(SEbins,
-#'                    analysis = "AS",
-#'                    padjust = "BH",
-#'                    fit = "fast")
-#' SEjunctions <- saseRfit(SEjunctions,
-#'                         analysis = "AS",
-#'                         padjust = "BH",
-#'                         fit = "fast")
-#'}
 #' @export
 #'
 #'
@@ -115,7 +69,7 @@ convertASpli <- function(ASpliSE, type="none", filter = TRUE, ...){
     }
     else if(type == "bin"){
         se <- .convertBin(ASpliSE)
-        if(filter == T){
+        if(filter == TRUE){
             .FilterBinCounts(se, ...)
         }
         se <- se[rowSums(is.na(counts(se))) == 0, ]

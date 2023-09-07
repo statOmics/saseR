@@ -54,6 +54,9 @@
 #' @param robustPCA logical value to perform robust PCA using the `PcaHubert`
 #' function, which decreases the influence of outlier values on the estimated
 #' latent factors.
+#' @param ignore_samples character vector with names of samples that are not
+#' used when performing the latent factor estimation and estimation of the
+#' regression coefficients.
 
 #' @return An updated `SummarizedExperiment` instance, now including a matrix
 #' of p-values (`pValue`) and a matrix of FDR-adjusted p-values
@@ -75,54 +78,20 @@
 #' @import havok
 #' @import GenomicRanges
 #' @import DESeq2
+#' @import MatrixGenerics
+#' @import GenomicFeatures
+#' @import knitr
+#' @import IRanges
+#' @import S4Vectors
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats aggregate median model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
 #'
 #'
 #' @examples
-#'
-#' \dontrun{
-#' gtfFileName <- aspliExampleGTF()
-#' BAMFiles <- aspliExampleBamList()
-#' targets <- data.frame(
-#'     row.names = paste0('Sample',c(1:12)),
-#'     bam = BAMFiles,
-#'     f1 = rep("A",12),
-#'     stringsAsFactors = FALSE)
-#' genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-#' features <- binGenome(genomeTxDb)
-#'
-#' ASpliSE <- BamtoAspliCounts(
-#'     features = features,
-#'     targets = targets,
-#'     minReadLength = 100,
-#'     libType = "SE",
-#'     BPPARAM = MulticoreParam(1L)
-#' )
-#'
-#' SEgenes <- convertASpli(ASpliSE, type = "gene")
-#' SEbins <- convertASpli(ASpliSE, type = "bin")
-#' SEjunctions <- convertASpli(ASpliSE, type = "junction")
-#'
-#' metadata(SEgenes)$design <- ~1
-#' metadata(SEbins)$design <- ~1
-#' metadata(SEjunctions)$design <- ~1
-#'
-#' SEgenes <- calculateOffsets(SEgenes, method = "TMM")
-#' SEbins <- calculateOffsets(SEbins,
-#'                            method = "AS",
-#'                            aggregation = "locus")
-#' SEjunctions <- calculateOffsets(SEjunctions,
-#'                                 method = "AS",
-#'                                 aggregation = "symbol",
-#'                                 mergeGeneASpli = TRUE)
-#'
-#' SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
-#' SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
-#' SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
+#' data(saseRExample, package = "saseR")
 #'
 #' SEgenes <- saseRfit(SEgenes,
 #'                     analysis = "AE",
@@ -136,7 +105,6 @@
 #'                         analysis = "AS",
 #'                         padjust = "BH",
 #'                         fit = "fast")
-#'}
 #' @export
 
 
@@ -147,7 +115,9 @@ saseRfit <- function(se,
                      BPPARAM = bpparam(),
                      fit = "fast",
                      scale = TRUE,
-                     robustPCA = FALSE){
+                     robustPCA = FALSE,
+                     ignore_samples = NULL){
+
 
     if(is.null(dimensions)){
         if(is.null(metadata(se)[['optimalEncDim']])){
@@ -174,7 +144,14 @@ saseRfit <- function(se,
     }
 
     if(!(metadata(se)[['LatentFactorControl']] %in% c("GavishDonoho"))){
+        if(!is.null(ignore_samples)){
+            DGE <- .fitEdgeRDisp(
+                se = se[,-which(rownames(colData(se)) %in% ignore_samples)],
+                design = getDesign(se))
+
+        } else {
         DGE <- .fitEdgeRDisp(se = se, design = getDesign(se))
+        }
         fit_DGE <- glmFit(y = DGE)
 
         # Principal component analysis on the deviance residuals
@@ -182,8 +159,19 @@ saseRfit <- function(se,
                                          fit_DGE = fit_DGE)
         if (scale == TRUE) {
             deviances <- (deviances - rowMeans(deviances))/rowSds(deviances)
-
+            deviances[is.nan(deviances)] <- 0
         }
+
+        assay(se,'deviances', withDimnames = FALSE) <- deviances
+
+
+        if(!is.null(ignore_samples)){
+            index_samples <- colnames(se)
+            se_removed <- se[,ignore_samples]
+            rowData(se_removed)$theta <- NULL
+            se <- se[,-which(rownames(colData(se)) %in% ignore_samples)]
+        }
+
         if (robustPCA == TRUE){
             SingularVectors <- PcaHubert(t(deviances),
                                          k = dimensions,
@@ -191,25 +179,30 @@ saseRfit <- function(se,
                                          scale = FALSE)
 
             metadata(se)[['svd_u']] <- SingularVectors$scores
+            rownames(metadata(se)[['svd_u']]) <- colnames(se)
             metadata(se)[['svd_d']] <- SingularVectors$eigenvalues
             metadata(se)[['svd_v']] <- SingularVectors$loadings
 
         } else {
-
-            SingularVectors <- svd(t(deviances))
-
-            assay(se,'deviances', withDimnames = FALSE) <- deviances
+            SingularVectors <- svd(t(assays(se)$deviances))
 
             metadata(se)[['svd_u']] <- SingularVectors$u
+            rownames(metadata(se)[['svd_u']]) <- colnames(se)
             metadata(se)[['svd_d']] <- SingularVectors$d
             metadata(se)[['svd_v']] <- SingularVectors$v
         }
+    } else {
+        if(!is.null(ignore_samples)){
+            index_samples <- colnames(se)
+            se_removed <- se[,ignore_samples]
+            se <- se[,-which(rownames(colData(se)) %in% ignore_samples)]
+        }
     }
+
+
     dimensions <- metadata(se)[['optimalEncDim']]
 
-
-    #Orthonormalisation
-    se <- .orthonormalisation(se=se)
+    se <- .full_design(se=se)
 
     # Calculate for each number of latent factors (= dimensions) that is
     # given as input the area under the curve of all merged p-values when
@@ -226,7 +219,24 @@ saseRfit <- function(se,
                   padjust = padjust,
                   fit = fit)
 
-    se <- .adjustPValues(se, method = padjust)
+
+
+    se <- .calcPValues(se, mu = assays(se)$mu, theta = rowData(se)$theta)
+    if(!is.null(ignore_samples)){
+        se_removed <- .calcPValuesIgnoredSamples(se_removed, se, dimensions)
+        se <- cbind(se,se_removed)[,index_samples]
+        metadata(se)$svd_u <- rbind(metadata(se)$svd_u,
+                                    metadata(se)$svd_u_removed)[index_samples,]
+        metadata(se)$svd_u_removed <- NULL
+    }
+
+    if(padjust != "none"){
+        se <- .adjustPValues(se, method = padjust)
+    }
+
+    if(analysis %in% c("AS","proportion")){
+        se <- .locusPValues(se)
+    }
 
     return(se)
 
@@ -235,7 +245,7 @@ saseRfit <- function(se,
 }
 
 
-.orthonormalisation <- function(se){
+.full_design <- function(se){
     if (getDesign(se) != ~1){
         env <- environment()
         formula <- update(getDesign(se), ~ . + metadata(se)[['svd_u']][,
@@ -246,10 +256,8 @@ saseRfit <- function(se,
         design <- model.matrix(~1+metadata(se)[['svd_u']][,
                         1:metadata(se)[['optimalEncDim']]], data = colData(se))
     }
-    qr <- gramSchmidt(A = design)
 
-    metadata(se)[["Q"]] <- qr$Q
-    metadata(se)[["R"]] <- qr$R
+    metadata(se)[["full_design"]] <- design
     return(se)
 
 }
@@ -262,14 +270,13 @@ saseRfit <- function(se,
                     padjust,
                     fit){
 
-
     # Extract the number of latent factors that is estimated to be optimal
     # by prior knowledge or hyperparameter optimisation.
     if(fit == "fast"){
     number_of_known_confounders <- dim(model.matrix(getDesign(se), data = colData(se)))[2]
     total_dimensions <- dimensions + number_of_known_confounders
 
-    reduced_orthonormal_vector_space <- metadata(se)[["Q"]][,1:total_dimensions]
+    final_design <- metadata(se)[["full_design"]][,1:total_dimensions]
     beta_initial_reduced_dimensions <- beta_initial[,1:total_dimensions]
 
     # Form a design matrix with the known covariates and latent factors.
@@ -277,18 +284,18 @@ saseRfit <- function(se,
     # and latent factors.
 
 
-    mu <- .adapted_IRLS(se = se,
+    se <- .adapted_IRLS(se = se,
                         analysis = analysis,
                         initial_beta=beta_initial_reduced_dimensions,
-                        reduced_orthonormal_vector_space =
-                            reduced_orthonormal_vector_space)
-
-    assay(se, 'mu', withDimnames=FALSE) <- mu
+                        final_design =
+                            final_design)
 
 
-    DGE <- .fitEdgeRDisp(se=se, offsets=mu, design=~1)
+
+    DGE <- .fitEdgeRDisp(se=se, offsets=assays(se)$mu, design=~1)
     theta <- 1/DGE$tagwise.dispersion
     rowData(se)$theta <- theta
+
 
     } else if (fit == "edgeR"){
         if (dimensions == 0){
@@ -300,24 +307,17 @@ saseRfit <- function(se,
             environment(formula) <- env
             design <- model.matrix(formula, data = colData(se))
         } else {
-            design <- model.matrix(~1+metadata(se)[['svd_u']][,1:dimensions], data = colData(se))
+            design <- model.matrix(~ 1 + metadata(se)[['svd_u']][,1:dimensions], data = colData(se))
         }
         DGE <- .fitEdgeRDisp(se=se, design = design)
         fit_DGE <- glmFit(y = DGE)
         assay(se, 'mu', withDimnames=FALSE) <- fit_DGE$fitted.values
-        rowData(se)$theta <- 1/fit_DGE$tagwise.dispersion
+        rowData(se)$theta <- 1/fit_DGE$dispersion
+        metadata(se)$coefficients <- fit_DGE$coefficients
+
     }
     #Calculate 2-sided p-values for every count based on previous estimates.
-    se <- .calcPValues(se, mu = mu, theta = theta)
 
-
-    if(padjust != "none"){
-        se <- .adjustPValues(se, method = padjust)
-    }
-
-    if(analysis %in% c("AS","proportion")){
-        se <- .locusPValues(se)
-    }
 
     # Store the p-values, estimated means and dispersion to the
     # OutriderDataSet.
@@ -331,11 +331,13 @@ saseRfit <- function(se,
 .CalculateDeviances <- function(se, fit_DGE){
 
     # Returns the deviance residuals
-
+    mu <- assays(se)$offsets * exp(fit_DGE$coefficients %*%
+                                        t(model.matrix(getDesign(se),
+                                        data = colData(se))))
     deviance <- nbinomUnitDeviance(counts(se),
-                                   mean = fit_DGE$fitted.values,
+                                   mean = mu,
                                    dispersion = fit_DGE$dispersion)
-    deviance_scaled <- sqrt(abs(deviance))*sign(counts(se)-fit_DGE$fitted.values)
+    deviance_scaled <- sqrt(abs(deviance))*sign(counts(se)-mu)
 
     return(deviance_scaled)
 }
@@ -353,7 +355,10 @@ saseRfit <- function(se,
     }
 
     if(!(design == ~1)){
-        design <- model.matrix(getDesign(se), data = colData(se))
+        if(!is.matrix(design)){
+          design <- model.matrix(design, data = colData(se))
+        }
+
     } else{
         design <- model.matrix(~1, data = colData(se))
     }
@@ -365,14 +370,15 @@ saseRfit <- function(se,
 .initial_beta <- function(se){
 
     log_data <- log((counts(se)+1)/assays(se)$offsets)
-    beta_initial<- lmFit(log_data, design = metadata(se)[["Q"]])$coefficients
+    beta_initial<- lmFit(log_data,
+                         design = metadata(se)$full_design)$coefficients
 
     return(beta_initial)
 }
 
 
 
-.adapted_IRLS <- function(se, analysis, initial_beta, reduced_orthonormal_vector_space, maxiter=50){
+.adapted_IRLS <- function(se, analysis, final_design, initial_beta, maxiter=50){
 
     if(analysis == "AE"){
         max <- matrix(.Machine$double.xmax,ncol = ncol(se),nrow = nrow(se))
@@ -380,19 +386,21 @@ saseRfit <- function(se,
     } else if(analysis %in% c("AS","proportion")){
         max <- as.matrix(assays(se)$offsets)
     }
-
-
-    mu <- exp(t(reduced_orthonormal_vector_space%*%t(initial_beta)))*assays(se)$offsets
+    design <- final_design
+    inverse <- solve(t(design)%*%design)
+    mu <- exp(t(design%*%t(initial_beta)))*assays(se)$offsets
 
     for(i in c(1:maxiter)){
         z <- log(mu/assays(se)$offsets) + counts(se)/mu - 1
 
-        beta <- t(reduced_orthonormal_vector_space)%*%t(z)
-        mu <- pmin(exp(t(reduced_orthonormal_vector_space%*%beta))*assays(se)$offsets*0.2 + 0.8* mu,
+        beta <- inverse %*% t(design)%*%t(z)
+        mu <- pmin(exp(t(design%*%beta))*assays(se)$offsets*0.2 + 0.8* mu,
                    max)
     }
+    assay(se, 'mu', withDimnames=FALSE) <- mu
+    metadata(se)$coefficients <- beta
 
-    return(mu)
+    return(se)
 }
 
 
@@ -404,6 +412,21 @@ saseRfit <- function(se,
     return(se)
 }
 
+.calcPValuesIgnoredSamples <- function(se_removed, se, dimensions){
+    svd_u_removed <- t(assays(se_removed)$deviances) %*% metadata(se)$svd_v %*%
+        diag(1/metadata(se)$svd_d)
+    rownames(svd_u_removed) <- colnames(se_removed)
+
+    metadata(se_removed)$svd_u_removed <- svd_u_removed
+
+    mu_removed <- assays(se_removed)$offsets * exp(t(cbind(1,svd_u_removed[,1:dimensions]) %*% metadata(se)$coefficients))
+    assays(se_removed)$mu <- mu_removed
+
+    se_removed <- .calcPValues(se_removed, mu_removed, rowData(se)$theta)
+
+    return(se_removed)
+
+}
 
 .locusPValues <- function(se){
     pvalues_before_group <- data.frame(assays(se)$pValue,"locus" = rowData(se)$locus)

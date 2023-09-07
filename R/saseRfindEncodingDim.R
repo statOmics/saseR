@@ -64,6 +64,9 @@
 #' back-end to be used for computations. See
 #' \code{bpparam} in \code{BiocParallel} package for details.
 
+#' @param scale boolean. If TRUE, the deviance residuals upon will be scaled to mean 0 and sd = 1 before estimating the latent factors.
+
+
 #' @param aggregation character vector representing the column in the rowData
 #' to be used to calculate offsets when injecting corrupted counts according to
 #' aberrant splicing. Only used when method is `DAE` and when analysis is `AE`.
@@ -94,67 +97,22 @@
 #' @import havok
 #' @import GenomicRanges
 #' @import DESeq2
+#' @import IRanges
+#' @import S4Vectors
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats aggregate median model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
 #' @examples
 #'
-#' \dontrun{
-#' gtfFileName <- aspliExampleGTF()
-#' BAMFiles <- aspliExampleBamList()
-#' targets <- data.frame(
-#'     row.names = paste0('Sample',c(1:12)),
-#'     bam = BAMFiles,
-#'     f1 = rep("A",12),
-#'     stringsAsFactors = FALSE)
-#' genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-#' features <- binGenome(genomeTxDb)
-#'
-#' ASpliSE <- BamtoAspliCounts(
-#'     features = features,
-#'     targets = targets,
-#'     minReadLength = 100,
-#'     libType = "SE",
-#'     BPPARAM = MulticoreParam(1L)
-#' )
-#'
-#' SEgenes <- convertASpli(ASpliSE, type = "gene")
-#' SEbins <- convertASpli(ASpliSE, type = "bin")
-#' SEjunctions <- convertASpli(ASpliSE, type = "junction")
-#'
-#' metadata(SEgenes)$design <- ~1
-#' metadata(SEbins)$design <- ~1
-#' metadata(SEjunctions)$design <- ~1
-#'
-#' SEgenes <- calculateOffsets(SEgenes, method = "TMM")
-#' SEbins <- calculateOffsets(SEbins,
-#'                            method = "AS",
-#'                            aggregation = "locus")
-#' SEjunctions <- calculateOffsets(SEjunctions,
-#'                                 method = "AS",
-#'                                 aggregation = "symbol",
-#'                                 mergeGeneASpli = TRUE)
+#' data(saseRExample, package = "saseR")
 #'
 #' SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
 #' SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
 #' SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
 #'
-#' SEgenes <- saseRfit(SEgenes,
-#'                     analysis = "AE",
-#'                     padjust = "BH",
-#'                     fit = "fast")
-#' SEbins <- saseRfit(SEbins,
-#'                    analysis = "AS",
-#'                    padjust = "BH",
-#'                    fit = "fast")
-#' SEjunctions <- saseRfit(SEjunctions,
-#'                         analysis = "AS",
-#'                         padjust = "BH",
-#'                         fit = "fast")
 #'
-#'}
 #' @export
 
 saseRfindEncodingDim <- function(se,
@@ -169,6 +127,7 @@ saseRfindEncodingDim <- function(se,
                                inj='both',
                                BPPARAM=bpparam(),
                                aggregation,
+                               scale = TRUE,
                                ...) {
 
     if(!(method %in% c("GD","DAE"))){
@@ -179,7 +138,7 @@ saseRfindEncodingDim <- function(se,
     }
 
     if(method == "GD"){
-        .GavishDonoho(se)
+        .GavishDonoho(se, scale = scale)
 
     } else if(method == "DAE"){
 
@@ -200,7 +159,8 @@ saseRfindEncodingDim <- function(se,
                     sdlog,
                     lnorm,
                     inj,
-                    BPPARAM)
+                    BPPARAM,
+                    scale)
         } else if(analysis == "AS"){
             .DAE_AS(se,
                     analysis,
@@ -211,7 +171,8 @@ saseRfindEncodingDim <- function(se,
                     sdlog,
                     lnorm,
                     inj,
-                    BPPARAM)
+                    BPPARAM,
+                    scale)
 
         }
 
@@ -221,14 +182,19 @@ saseRfindEncodingDim <- function(se,
 
 }
 
-.GavishDonoho <- function(se){
+.GavishDonoho <- function(se, scale){
     DGE <- .fitEdgeRDisp(se = se, design = getDesign(se))
     fit_DGE <- glmFit(y = DGE)
 
     # Principal component analysis on the deviance residuals
     deviances <- .CalculateDeviances(se = se,
                                      fit_DGE = fit_DGE)
+    if (scale == TRUE) {
+            deviances <- (deviances - rowMeans(deviances))/rowSds(deviances)
+
+    }
     SingularVectors <- svd(t(deviances))
+
     dimensions <- .OptimalHardThreshold(SingularVectors)
 
     metadata(se)[['optimalEncDim']] <- dimensions
@@ -256,6 +222,7 @@ saseRfindEncodingDim <- function(se,
                                lnorm=TRUE,
                                inj='both',
                                BPPARAM=bpparam(),
+                               scale = TRUE,
                                ...){
 
     assay(se,'trueOffsets', withDimnames = FALSE) <- assays(se)$offsets
@@ -287,6 +254,10 @@ saseRfindEncodingDim <- function(se,
     # Principal component analysis on the deviance residuals
     deviances <- .CalculateDeviances(se = se,
                                      fit_DGE = fit_DGE)
+    if (scale == TRUE) {
+            deviances <- (deviances - rowMeans(deviances))/rowSds(deviances)
+
+    }
     SingularVectors <- svd(t(deviances))
 
     assay(se,'deviances', withDimnames = FALSE) <- deviances
@@ -343,6 +314,7 @@ saseRfindEncodingDim <- function(se,
                     lnorm=TRUE,
                     inj='both',
                     BPPARAM=bpparam(),
+                    scale = TRUE,
                     ...){
 
     assay(se,'trueOffsets', withDimnames = FALSE) <- assays(se)$offsets
@@ -375,6 +347,10 @@ saseRfindEncodingDim <- function(se,
     # Principal component analysis on the deviance residuals
     deviances <- .CalculateDeviances(se = se,
                                      fit_DGE = fit_DGE)
+    if (scale == TRUE) {
+            deviances <- (deviances - rowMeans(deviances))/rowSds(deviances)
+
+    }
     SingularVectors <- svd(t(deviances))
 
     assay(se,'deviances', withDimnames = FALSE) <- deviances
@@ -487,7 +463,7 @@ saseRfindEncodingDim <- function(se,
         n <- m
         m <- mtemp
     }
-    dimensions <- sum(d >= (optimal_SVHT_coef(m/n,sigma_known = F) * median(d)))
+    dimensions <- sum(d >= (optimal_SVHT_coef(m/n,sigma_known = FALSE) * median(d)))
     return(dimensions)
 }
 

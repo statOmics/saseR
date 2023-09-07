@@ -12,7 +12,8 @@ saseRfit(
   BPPARAM = bpparam(),
   fit = "fast",
   scale = TRUE,
-  robustPCA = FALSE
+  robustPCA = FALSE,
+  ignore_samples = NULL
 )
 }
 \arguments{
@@ -55,6 +56,10 @@ performing the singular value decomposition.}
 \item{robustPCA}{logical value to perform robust PCA using the `PcaHubert`
 function, which decreases the influence of outlier values on the estimated
 latent factors.}
+
+\item{ignore_samples}{character vector with names of samples that are not
+used when performing the latent factor estimation and estimation of the
+regression coefficients.}
 }
 \value{
 An updated `SummarizedExperiment` instance, now including a matrix
@@ -74,46 +79,7 @@ factors in the regression. It returns the p-values for the prioritisation
 of aberrant expression or splicing.
 }
 \examples{
-
-\dontrun{
-gtfFileName <- aspliExampleGTF()
-BAMFiles <- aspliExampleBamList()
-targets <- data.frame(
-    row.names = paste0('Sample',c(1:12)),
-    bam = BAMFiles,
-    f1 = rep("A",12),
-    stringsAsFactors = FALSE)
-genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-features <- binGenome(genomeTxDb)
-
-ASpliSE <- BamtoAspliCounts(
-    features = features,
-    targets = targets,
-    minReadLength = 100,
-    libType = "SE",
-    BPPARAM = MulticoreParam(1L)
-)
-
-SEgenes <- convertASpli(ASpliSE, type = "gene")
-SEbins <- convertASpli(ASpliSE, type = "bin")
-SEjunctions <- convertASpli(ASpliSE, type = "junction")
-
-metadata(SEgenes)$design <- ~1
-metadata(SEbins)$design <- ~1
-metadata(SEjunctions)$design <- ~1
-
-SEgenes <- calculateOffsets(SEgenes, method = "TMM")
-SEbins <- calculateOffsets(SEbins,
-                           method = "AS",
-                           aggregation = "locus")
-SEjunctions <- calculateOffsets(SEjunctions,
-                                method = "AS",
-                                aggregation = "symbol",
-                                mergeGeneASpli = TRUE)
-
-SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
-SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
-SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
+data(saseRExample, package = "saseR")
 
 SEgenes <- saseRfit(SEgenes,
                     analysis = "AE",
@@ -127,5 +93,4 @@ SEjunctions <- saseRfit(SEjunctions,
                         analysis = "AS",
                         padjust = "BH",
                         fit = "fast")
-}
 }

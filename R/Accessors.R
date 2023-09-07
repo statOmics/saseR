@@ -3,7 +3,7 @@
 setGeneric("getDesign", function(object) standardGeneric("getDesign"))
 setGeneric("getSizeFactors", function(object) standardGeneric("getSizeFactors"))
 setGeneric("counts", function(object) standardGeneric("counts"))
-setGeneric("metadata", function(object) standardGeneric("metadata"))
+# setGeneric("metadata", function(object) standardGeneric("metadata"))
 
 
 
@@ -22,7 +22,7 @@ setMethod("counts",
           definition = function(object) assays(object)[["counts"]]
 )
 
-setMethod("metadata",
-          signature = "SummarizedExperiment",
-          definition = function(object) object@metadata
-)
+# setMethod("metadata",
+#           signature = "SummarizedExperiment",
+#           definition = function(object) object@metadata
+# )

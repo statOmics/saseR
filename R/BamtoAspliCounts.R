@@ -66,67 +66,25 @@
 #' @import havok
 #' @import GenomicRanges
 #' @import DESeq2
+#' @import IRanges
+#' @import S4Vectors
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats aggregate median model.matrix p.adjust pnbinom pnorm qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom pnorm qnbinom rlnorm rmultinom runif
 #'
 #' @examples
 #'
-#' \dontrun{
-#' gtfFileName <- aspliExampleGTF()
-#' BAMFiles <- aspliExampleBamList()
-#' targets <- data.frame(
-#'     row.names = paste0('Sample',c(1:12)),
-#'     bam = BAMFiles,
-#'     f1 = rep("A",12),
-#'     stringsAsFactors = FALSE)
-#' genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-#' features <- binGenome(genomeTxDb)
+#' data(saseRExample, package = "saseR")
 #'
 #' ASpliSE <- BamtoAspliCounts(
 #'     features = features,
 #'     targets = targets,
 #'     minReadLength = 100,
-#'     libType = "SE",
-#'     BPPARAM = MulticoreParam(1L)
+#'     libType = "SE"
 #' )
 #'
-#' SEgenes <- convertASpli(ASpliSE, type = "gene")
-#' SEbins <- convertASpli(ASpliSE, type = "bin")
-#' SEjunctions <- convertASpli(ASpliSE, type = "junction")
-#'
-#' metadata(SEgenes)$design <- ~1
-#' metadata(SEbins)$design <- ~1
-#' metadata(SEjunctions)$design <- ~1
-#'
-#' SEgenes <- calculateOffsets(SEgenes, method = "TMM")
-#' SEbins <- calculateOffsets(SEbins,
-#'                            method = "AS",
-#'                            aggregation = "locus")
-#' SEjunctions <- calculateOffsets(SEjunctions,
-#'                                 method = "AS",
-#'                                 aggregation = "symbol",
-#'                                 mergeGeneASpli = TRUE)
-#'
-#' SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
-#' SEbins <- saseRfindEncodingDim(SEbins, method = "GD")
-#' SEjunctions <- saseRfindEncodingDim(SEjunctions, method = "GD")
-#'
-#' SEgenes <- saseRfit(SEgenes,
-#'                     analysis = "AE",
-#'                     padjust = "BH",
-#'                     fit = "fast")
-#' SEbins <- saseRfit(SEbins,
-#'                    analysis = "AS",
-#'                    padjust = "BH",
-#'                    fit = "fast")
-#' SEjunctions <- saseRfit(SEjunctions,
-#'                         analysis = "AS",
-#'                         padjust = "BH",
-#'                         fit = "fast")
-#'}
 #' @export
 #'
 #'
@@ -288,8 +246,8 @@ BamtoAspliCounts <- function(
             dt1                    <- data.table(counts@junction.counts, keep.rownames = TRUE)
             dt2                    <- data.table(ASpli:::.extractCountColumns(counts_list[[target]]$junction.hits,
                                                                               targets[target, ]),
-                                                 keep.rownames = T)
-            dt3                    <- data.frame(merge(dt1, dt2, by="rn", all.x=T, all.y=TRUE))
+                                                 keep.rownames = TRUE)
+            dt3                    <- data.frame(merge(dt1, dt2, by="rn", all.x=TRUE, all.y=TRUE))
             junction.hits <- counts_list[[target]]$junction.hits
             for(s in c("junction", "gene", "strand", "multipleHit", "symbol", "gene_coordinates", "bin_spanned", "j_within_bin")){
                 dt3[, s]           <- as.character(dt3[, s])
