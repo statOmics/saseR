@@ -69,6 +69,17 @@ found in the corresponding package and paper.
 
 data(saseRExample, package = "saseR")
 
+bamFileNames <- paste(rep(c("A", "B"), each = 6), rep(c("C",
+ "D"), 2, each = 3), paste0(rep(0:2, 2), ".bam"), sep = "_")
+
+BAMFiles <- system.file("extdata", bamFileNames, package = "saseR")
+
+targets <- data.frame(
+    row.names = paste0('Sample',c(1:12)),
+    bam = BAMFiles,
+    f1 = rep("A",12),
+    stringsAsFactors = FALSE)
+
 ASpliSE <- BamtoAspliCounts(
     features = features,
     targets = targets,

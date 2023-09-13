@@ -1,0 +1,60 @@
+reference	protein_coding	exon	1	300	.	+	.	gene_id "GENE01"; transcript_id "TX01.1"; exon_number "1";
+reference	protein_coding	exon	501	700	.	+	.	gene_id "GENE01"; transcript_id "TX01.1"; exon_number "2";
+reference	protein_coding	exon	1	700	.	+	.	gene_id "GENE01"; transcript_id "TX01.2"; exon_number "1";
+
+reference	protein_coding	exon	1001	1250	.	+	.	gene_id "GENE02"; transcript_id "TX02.1"; exon_number "1";
+reference	protein_coding	exon	1301	1400	.	+	.	gene_id "GENE02"; transcript_id "TX02.1"; exon_number "2";
+reference	protein_coding	exon	1601	1800	.	+	.	gene_id "GENE02"; transcript_id "TX02.1"; exon_number "3";
+reference	protein_coding	exon	1001	1250	.	+	.	gene_id "GENE02"; transcript_id "TX02.2"; exon_number "1";
+reference	protein_coding	exon	1601	1800	.	+	.	gene_id "GENE02"; transcript_id "TX02.2"; exon_number "2";
+
+reference	protein_coding	exon	2001	2350	.	+	.	gene_id "GENE03"; transcript_id "TX03.1"; exon_number "1";
+reference	protein_coding	exon	2501	2800	.	+	.	gene_id "GENE03"; transcript_id "TX03.1"; exon_number "2";
+reference	protein_coding	exon	2001	2250	.	+	.	gene_id "GENE03"; transcript_id "TX03.2"; exon_number "1";
+reference	protein_coding	exon	2501	2800	.	+	.	gene_id "GENE03"; transcript_id "TX03.2"; exon_number "2";
+
+reference	protein_coding	exon	3001	3250	.	+	.	gene_id "GENE04"; transcript_id "TX04.1"; exon_number "1";
+reference	protein_coding	exon	3401	3800	.	+	.	gene_id "GENE04"; transcript_id "TX04.1"; exon_number "2";
+reference	protein_coding	exon	3001	3250	.	+	.	gene_id "GENE04"; transcript_id "TX04.2"; exon_number "1";
+reference	protein_coding	exon	3501	3800	.	+	.	gene_id "GENE04"; transcript_id "TX04.2"; exon_number "2";
+
+reference	protein_coding	exon	4001	4250	.	+	.	gene_id "GENE05"; transcript_id "TX05.1"; exon_number "1";
+reference	protein_coding	exon	4501	4800	.	+	.	gene_id "GENE05"; transcript_id "TX05.1"; exon_number "2";
+reference	protein_coding	exon	4001	4350	.	+	.	gene_id "GENE05"; transcript_id "TX05.2"; exon_number "1";
+reference	protein_coding	exon	4601	4800	.	+	.	gene_id "GENE05"; transcript_id "TX05.2"; exon_number "2";
+
+reference	protein_coding	exon	5001	5250	.	+	.	gene_id "GENE06"; transcript_id "TX06.1"; exon_number "1";
+reference	protein_coding	exon	5601	5800	.	+	.	gene_id "GENE06"; transcript_id "TX06.1"; exon_number "2";
+reference	protein_coding	exon	5001	5350	.	+	.	gene_id "GENE06"; transcript_id "TX06.2"; exon_number "1";
+reference	protein_coding	exon	5601	5800	.	+	.	gene_id "GENE06"; transcript_id "TX06.2"; exon_number "2";
+reference	protein_coding	exon	5001	5450	.	+	.	gene_id "GENE06"; transcript_id "TX06.3"; exon_number "1";
+reference	protein_coding	exon	5601	5800	.	+	.	gene_id "GENE06"; transcript_id "TX06.3"; exon_number "2";
+
+reference	protein_coding	exon	6001	6250	.	+	.	gene_id "GENE07"; transcript_id "TX07.1"; exon_number "1";
+reference	protein_coding	exon	6601	6800	.	+	.	gene_id "GENE07"; transcript_id "TX07.1"; exon_number "2";
+reference	protein_coding	exon	6001	6250	.	+	.	gene_id "GENE07"; transcript_id "TX07.2"; exon_number "1";
+reference	protein_coding	exon	6351	6450	.	+	.	gene_id "GENE07"; transcript_id "TX07.2"; exon_number "2";
+reference	protein_coding	exon	6601	6800	.	+	.	gene_id "GENE07"; transcript_id "TX07.2"; exon_number "3";
+reference	protein_coding	exon	6001	6450	.	+	.	gene_id "GENE07"; transcript_id "TX07.3"; exon_number "1";
+reference	protein_coding	exon	6601	6800	.	+	.	gene_id "GENE07"; transcript_id "TX07.3"; exon_number "2";
+
+reference	protein_coding	exon	7001	7250	.	+	.	gene_id "GENE08"; transcript_id "TX08.1"; exon_number "1";
+reference	protein_coding	exon	7601	7800	.	+	.	gene_id "GENE08"; transcript_id "TX08.1"; exon_number "2";
+reference	protein_coding	exon	7001	7450	.	+	.	gene_id "GENE08"; transcript_id "TX08.2"; exon_number "1";
+reference	protein_coding	exon	7601	7800	.	+	.	gene_id "GENE08"; transcript_id "TX08.2"; exon_number "2";
+reference	protein_coding	exon	7001	7250	.	+	.	gene_id "GENE08"; transcript_id "TX08.3"; exon_number "1";
+reference	protein_coding	exon	7351	7800	.	+	.	gene_id "GENE08"; transcript_id "TX08.3"; exon_number "2";
+
+reference	protein_coding	exon	8001	8450	.	+	.	gene_id "GENE09"; transcript_id "TX09.1"; exon_number "1";
+reference	protein_coding	exon	8601	8800	.	+	.	gene_id "GENE09"; transcript_id "TX09.1"; exon_number "2";
+reference	protein_coding	exon	8001	8250	.	+	.	gene_id "GENE09"; transcript_id "TX09.2"; exon_number "1";
+reference	protein_coding	exon	8351	8800	.	+	.	gene_id "GENE09"; transcript_id "TX09.2"; exon_number "2";
+reference	protein_coding	exon	8001	8800	.	+	.	gene_id "GENE09"; transcript_id "TX09.3"; exon_number "1";
+
+reference	protein_coding	exon	9001	9250	.	+	.	gene_id "GENE10"; transcript_id "TX10.1"; exon_number "1";
+reference	protein_coding	exon	9451	9800	.	+	.	gene_id "GENE10"; transcript_id "TX10.1"; exon_number "2";
+reference	protein_coding	exon	9001	9250	.	+	.	gene_id "GENE10"; transcript_id "TX10.2"; exon_number "1";
+reference	protein_coding	exon	9351	9800	.	+	.	gene_id "GENE10"; transcript_id "TX10.2"; exon_number "2";
+reference	protein_coding	exon	9001	9800	.	+	.	gene_id "GENE10"; transcript_id "TX10.3"; exon_number "1";
+
+

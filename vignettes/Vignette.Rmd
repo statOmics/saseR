@@ -205,10 +205,22 @@ included as columns in the colData slot.
 metadata(SEgenes)$design <- ~1
 ```
 
+For an aberrant expression analysis, we first retain only the genes that have
+sufficiently large counts. 
 Then, we need to calculate the offsets for our analysis. For aberrant expression
 analysis, we recommend using `TMM` or `geommean` for edgeR and DESeq2 
 normalisation respectively. This results in an offsets matrix in the assays
 slot. 
+
+Note that for aberrant splicing detection, first offsets are calculated before
+filtering features that have low counts.
+
+
+```{r}
+filtergenes <- filterByExpr(SEgenes)
+SEgenes <- SEgenes[filtergenes,]
+```
+
 
 ```{r}
 SEgenes <- calculateOffsets(SEgenes, method = "TMM")
@@ -321,6 +333,18 @@ SEjunctions <- calculateOffsets(SEjunctions,
                             aggregation = "symbol",
                             mergeGeneASpli = TRUE)
 
+```
+
+Then, after calculating the offsets for the aberrant splicing analysis, we
+filter the features that have very low counts. Note that for aberrant expression
+analyses, first the features are filtered, followed by calculating the offsets.
+
+```{r}
+filterbins <- filterByExpr(SEbins)
+SEbins <- SEbins[filterbins,]
+
+filterjunctions <- filterByExpr(SEjunctions)
+SEjunctions <- SEjunctions[filterjunctions,]
 ```
 
 Having defined the `design` and the `offsets` of the analysis, we can continue

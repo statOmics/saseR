@@ -70,7 +70,7 @@ convertASpli <- function(ASpliSE, type="none", filter = TRUE, ...){
     else if(type == "bin"){
         se <- .convertBin(ASpliSE)
         if(filter == TRUE){
-            .FilterBinCounts(se, ...)
+            se <- .FilterBinCounts(se, ...)
         }
         se <- se[rowSums(is.na(counts(se))) == 0, ]
 

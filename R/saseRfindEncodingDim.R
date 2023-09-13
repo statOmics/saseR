@@ -191,7 +191,7 @@ saseRfindEncodingDim <- function(se,
                                      fit_DGE = fit_DGE)
     if (scale == TRUE) {
             deviances <- (deviances - rowMeans(deviances))/rowSds(deviances)
-
+            deviances[is.nan(deviances)] <- 0
     }
     SingularVectors <- svd(t(deviances))
 
@@ -256,7 +256,7 @@ saseRfindEncodingDim <- function(se,
                                      fit_DGE = fit_DGE)
     if (scale == TRUE) {
             deviances <- (deviances - rowMeans(deviances))/rowSds(deviances)
-
+            deviances[is.nan(deviances)] <- 0
     }
     SingularVectors <- svd(t(deviances))
 
@@ -268,9 +268,7 @@ saseRfindEncodingDim <- function(se,
 
     metadata(se)[['optimalEncDim']] <- max(dimensions)
 
-    se <- .orthonormalisation(se=se)
-
-
+    se <- .full_design(se=se)
 
     beta_initial <- .initial_beta(se=se)
     eval <- bplapply(X=dimensions, ..., BPPARAM=BPPARAM,
@@ -349,7 +347,7 @@ saseRfindEncodingDim <- function(se,
                                      fit_DGE = fit_DGE)
     if (scale == TRUE) {
             deviances <- (deviances - rowMeans(deviances))/rowSds(deviances)
-
+            deviances[is.nan(deviances)] <- 0
     }
     SingularVectors <- svd(t(deviances))
 
@@ -361,7 +359,7 @@ saseRfindEncodingDim <- function(se,
 
     metadata(se)[['optimalEncDim']] <- max(dimensions)
 
-    se <- .orthonormalisation(se=se)
+    se <- .full_design(se=se)
 
 
     # Calculate for each number of latent factors (= dimensions) that is

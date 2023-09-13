@@ -83,6 +83,7 @@
 #' @import knitr
 #' @import IRanges
 #' @import S4Vectors
+#' @importFrom dplyr `%>%` group_by summarise across mutate
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
@@ -346,7 +347,6 @@ saseRfit <- function(se,
 .fitEdgeRDisp <- function(se, offsets = NULL, design=~1, ...){
     # Fit edgeR model on intercept and known covariates. This is
     # further used to calculate the deviances.
-
     DGE <- DGEList(counts=counts(se))
     if(is.null(offsets)){
         DGE$offset <- log(assays(se)$offsets)
@@ -436,8 +436,9 @@ saseRfit <- function(se,
 
     rownames <- pvalues_grouped$locus
     pvalues_grouped[,1] <- NULL
+    pvalues_grouped <- pvalues_grouped %>% as.matrix()
     rownames(pvalues_grouped) <- rownames
-    metadata(se)$pValuesLocus <- as.matrix(pvalues_grouped)
+    metadata(se)$pValuesLocus <- pvalues_grouped
     return(se)
 
 }
