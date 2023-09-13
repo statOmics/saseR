@@ -13,7 +13,7 @@ Description: saseR is a highly performant and fast framework for aberrant expres
 	}
 	For information upon how to use these functions, check out our vignette at \url{https://github.com/statOmics/saseR/blob/main/vignettes/Vignette.Rmd} and the saseR paper: Segers, A. et al. (2023). Juggling offsets unlocks RNA-seq tools for fast scalable differential usage, aberrant splicing and expression analyses. bioRxiv. \url{https://doi.org/10.1101/2023.06.29.547014}.
 Authors@R: c(person("Alexandre", "Segers", role = c("aut","cre"),
-                     email = "alexandre.segers@ugent.be"),
+                     email = "Alexandre.segers@ugent.be"),
 	     person("Jeroen","Gilis", role="ctb",
 		     email = "Jeroen.Gilis@ugent.be"),
 	     person("Mattias","Van Heetvelde", role="ctb",

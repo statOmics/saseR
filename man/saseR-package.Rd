@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Alexandre Segers \email{alexandre.segers@ugent.be}
+\strong{Maintainer}: Alexandre Segers \email{Alexandre.segers@ugent.be}
 
 Other contributors:
 \itemize{
