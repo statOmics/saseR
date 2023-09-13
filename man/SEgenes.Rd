@@ -3,12 +3,6 @@
 \name{SEgenes}
 \alias{SEgenes}
 \title{SEgenes}
-\format{
-SEgenes
-}
-\source{
-SEgenes
-}
 \usage{
 data(saseRExample)
 }
@@ -16,8 +10,5 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-SEgenes
-}
-\references{
-SEgenes
+SummarizedExperiment containing gene-level counts to perform an example aberrant expression analysis.
 }

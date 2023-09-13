@@ -3,12 +3,6 @@
 \name{SEjunctions}
 \alias{SEjunctions}
 \title{SEjunctions}
-\format{
-SEjunctions
-}
-\source{
-SEjunctions
-}
 \usage{
 data(saseRExample)
 }
@@ -16,8 +10,5 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-SEjunctions
-}
-\references{
-SEjunctions
+SummarizedExperiment containing junction-level counts to perform an example aberrant splicing analysis
 }

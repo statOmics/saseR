@@ -4,10 +4,10 @@
 \alias{features}
 \title{features}
 \format{
-features
+/
 }
 \source{
-features
+https://doi.org/10.1093/bioinformatics/btab141
 }
 \usage{
 data(saseRExample)
@@ -16,8 +16,8 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-features
+features used to count bam-files. These are obtained by binGenome from ASpli.
 }
 \references{
-aa
+Estefania Mancini, Andres Rabinovich, Javier Iserte, Marcelo Yanovsky, Ariel Chernomoretz, ASpli: integrative analysis of splicing landscapes through RNA-Seq assays, Bioinformatics, Volume 37, Issue 17, September 2021, Pages 2609–2616, https://doi.org/10.1093/bioinformatics/btab141
 }

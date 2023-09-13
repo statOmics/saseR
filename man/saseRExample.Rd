@@ -7,7 +7,7 @@
 data(saseRExample)
 }
 \value{
-Loads all data needed to run vignette and examples
+Loads all data needed to run examples
 }
 \description{
 saseR example data, obtained from the ASpli package

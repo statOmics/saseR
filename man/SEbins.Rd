@@ -3,12 +3,6 @@
 \name{SEbins}
 \alias{SEbins}
 \title{SEbins}
-\format{
-SEbins
-}
-\source{
-SEbins
-}
 \usage{
 data(saseRExample)
 }
@@ -16,8 +10,5 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-SEbins
-}
-\references{
-SEbins
+SummarizedExperiment containing bin-level counts to perform an example aberrant splicing analysis.
 }

@@ -2,13 +2,7 @@
 % Please edit documentation in R/data.R
 \name{ASpliSE}
 \alias{ASpliSE}
-\title{saseRExample}
-\format{
-saseRExample
-}
-\source{
-saseRExample
-}
+\title{ASpliSE}
 \usage{
 data(saseRExample)
 }
@@ -16,8 +10,5 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-saseRExample
-}
-\references{
-aa
+SummarizedExperiment containing gene counts, bin counts and junction counts in the metadata slots, together with some rowData information. Output from BamtoAspliCounts.
 }
