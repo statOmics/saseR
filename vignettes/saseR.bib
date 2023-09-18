@@ -1,12 +1,88 @@
 %% This BibTeX bibliography file was created using BibDesk.
 %% https://bibdesk.sourceforge.io/
 
-%% Created for Alexandre Segers at 2023-08-24 12:30:33 +0200 
+%% Created for Alexandre Segers at 2023-09-18 10:36:18 +0200 
 
 
 %% Saved with string encoding Unicode (UTF-8) 
 
 
+
+@article{Anders,
+	abstract = {RNA-seq is a powerful tool for the study of alternative splicing and other forms of alternative isoform expression. Understanding the regulation of these processes requires sensitive and specific detection of differential isoform abundance in comparisons between conditions, cell types, or tissues. We present DEXSeq, a statistical method to test for differential exon usage in RNA-seq data. DEXSeq uses generalized linear models and offers reliable control of false discoveries by taking biological variation into account. DEXSeq detects with high sensitivity genes, and in many cases exons, that are subject to differential exon usage. We demonstrate the versatility of DEXSeq by applying it to several data sets. The method facilitates the study of regulation and function of alternative exon usage on a genome-wide scale. An implementation of DEXSeq is available as an R/Bioconductor package.},
+	address = {European Molecular Biology Laboratory, 69111 Heidelberg, Germany. sanders@fs.tum.de},
+	author = {Anders, Simon and Reyes, Alejandro and Huber, Wolfgang},
+	crdt = {2012/06/23 06:00},
+	date = {2012 Oct},
+	date-added = {2023-09-18 10:35:08 +0200},
+	date-modified = {2023-09-18 10:35:15 +0200},
+	dcom = {20130219},
+	dep = {20120621},
+	doi = {10.1101/gr.133744.111},
+	edat = {2012/06/23 06:00},
+	issn = {1549-5469 (Electronic); 1088-9051 (Print); 1088-9051 (Linking)},
+	jid = {9518021},
+	journal = {Genome Res},
+	jt = {Genome research},
+	language = {eng},
+	lid = {10.1101/gr.133744.111 {$[$}doi{$]$}},
+	lr = {20220410},
+	mh = {Algorithms; *Alternative Splicing; Animals; Cell Line; Computational Biology/methods; Databases, Nucleic Acid; *Exons; Genomics/methods; Humans; *Models, Genetic; Pan troglodytes/genetics; RNA/*chemistry/*genetics},
+	mhda = {2013/02/21 06:00},
+	month = {Oct},
+	number = {10},
+	own = {NLM},
+	pages = {2008--2017},
+	phst = {2012/06/23 06:00 {$[$}entrez{$]$}; 2012/06/23 06:00 {$[$}pubmed{$]$}; 2013/02/21 06:00 {$[$}medline{$]$}},
+	pii = {gr.133744.111},
+	pl = {United States},
+	pmc = {PMC3460195},
+	pmid = {22722343},
+	pst = {ppublish},
+	pt = {Journal Article},
+	rn = {63231-63-0 (RNA)},
+	sb = {IM},
+	status = {MEDLINE},
+	title = {Detecting differential usage of exons from RNA-seq data.},
+	volume = {22},
+	year = {2012},
+	Bdsk-Url-1 = {https://doi.org/10.1101/gr.133744.111}}
+
+@article{Robinson,
+	abstract = {Summary: It is expected that emerging digital gene expression (DGE) technologies will overtake microarray technologies in the near future for many functional genomics applications. One of the fundamental data analysis tasks, especially for gene expression studies, involves determining whether there is evidence that counts for a transcript or exon are significantly different across experimental conditions. edgeR is a Bioconductor software package for examining differential expression of replicated count data. An overdispersed Poisson model is used to account for both biological and technical variability. Empirical Bayes methods are used to moderate the degree of overdispersion across transcripts, improving the reliability of inference. The methodology can be used even with the most minimal levels of replication, provided at least one phenotype or experimental condition is replicated. The software may have other applications beyond sequencing data, such as proteome peptide count data.Availability: The package is freely available under the LGPL licence from the Bioconductor web site (http://bioconductor.org).Contact:  mrobinson@wehi.edu.au %[ 9/18/2023},
+	author = {Robinson, Mark D. and McCarthy, Davis J. and Smyth, Gordon K.},
+	booktitle = {Bioinformatics},
+	date = {2009},
+	date-added = {2023-09-18 10:32:50 +0200},
+	date-modified = {2023-09-18 10:33:00 +0200},
+	journal = {Bioinformatics},
+	number = {1},
+	pages = {139-140 %@ 1367-4803},
+	title = {edgeR: a Bioconductor package for differential expression analysis of digital gene expression data},
+	type = {10.1093/bioinformatics/btp616},
+	url = {https://doi.org/10.1093/bioinformatics/btp616},
+	volume = {26},
+	year = {2009},
+	Bdsk-Url-1 = {https://doi.org/10.1093/bioinformatics/btp616}}
+
+@article{Love,
+	abstract = {In comparative high-throughput sequencing assays, a fundamental task is the analysis of count data, such as read counts per gene in RNA-seq, for evidence of systematic changes across experimental conditions. Small replicate numbers, discreteness, large dynamic range and the presence of outliers require a suitable statistical approach. We present DESeq2, a method for differential analysis of count data, using shrinkage estimation for dispersions and fold changes to improve stability and interpretability of estimates. This enables a more quantitative analysis focused on the strength rather than the mere presence of differential expression. The DESeq2 package is available at http://www.bioconductor.org/packages/release/bioc/html/DESeq2.html.},
+	author = {Love, Michael I. and Huber, Wolfgang and Anders, Simon},
+	da = {2014/12/05},
+	date-added = {2023-09-18 10:29:58 +0200},
+	date-modified = {2023-09-18 10:30:09 +0200},
+	doi = {10.1186/s13059-014-0550-8},
+	id = {Love2014},
+	isbn = {1474-760X},
+	journal = {Genome Biology},
+	number = {12},
+	pages = {550},
+	title = {Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2},
+	ty = {JOUR},
+	url = {https://doi.org/10.1186/s13059-014-0550-8},
+	volume = {15},
+	year = {2014},
+	Bdsk-Url-1 = {https://doi.org/10.1186/s13059-014-0550-8}}
 
 @article{Segers2023,
 	abstract = {RNA-sequencing (RNA-seq) is increasingly used to diagnose patients with rare diseases by prioritising genes with aberrant expression and/or splicing. State-of-the-art methods for detecting aberrant expression and splicing, however, are extremely slow. The latter, also discard much information because they only use junction reads to infer aberrant splicing. In this contribution, we show that replacing the offset for library size unlocks conventional bulk RNA-seq workflows for fast and scalable differential usage, aberrant splicing and expression analyses. Our method, saseR, is several orders of magnitude faster than the state-of-the-art methods and dramatically outperforms these in terms of sensitivity and specificity for aberrant splicing, while being on par with these inferring differential usage and aberrant expression. Finally, our framework is also very flexible and can be used for all applications that involve the analysis of proportions of short- or long RNA-seq read counts.Competing Interest StatementThe authors have declared no competing interest.},

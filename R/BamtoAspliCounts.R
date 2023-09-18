@@ -56,6 +56,7 @@
 #'
 #' @import ASpli
 #' @import edgeR
+#' @import S4Vectors
 #' @import MASS
 #' @import pracma
 #' @import SummarizedExperiment
@@ -67,7 +68,6 @@
 #' @import GenomicRanges
 #' @import DESeq2
 #' @import IRanges
-#' @import S4Vectors
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N

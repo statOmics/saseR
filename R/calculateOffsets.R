@@ -74,6 +74,7 @@
 #'
 #' @import ASpli
 #' @import edgeR
+#' @import S4Vectors
 #' @import MASS
 #' @import pracma
 #' @import SummarizedExperiment
@@ -85,7 +86,8 @@
 #' @import GenomicRanges
 #' @import DESeq2
 #' @import IRanges
-#' @import S4Vectors
+#' @import DEXSeq
+#' @import GenomicAlignments
 #' @importFrom dplyr `%>%` group_by summarise across mutate
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2

@@ -68,6 +68,7 @@
 #'
 #' @import ASpli
 #' @import edgeR
+#' @import S4Vectors
 #' @import MASS
 #' @import pracma
 #' @import SummarizedExperiment
@@ -82,7 +83,6 @@
 #' @import GenomicFeatures
 #' @import knitr
 #' @import IRanges
-#' @import S4Vectors
 #' @importFrom dplyr `%>%` group_by summarise across mutate
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
