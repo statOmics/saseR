@@ -76,7 +76,6 @@
 #' @import PRROC
 #' @import BiocGenerics
 #' @import methods
-#' @import havok
 #' @import GenomicRanges
 #' @import DESeq2
 #' @import MatrixGenerics

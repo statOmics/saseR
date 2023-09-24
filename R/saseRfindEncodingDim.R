@@ -95,7 +95,6 @@
 #' @import PRROC
 #' @import BiocGenerics
 #' @import methods
-#' @import havok
 #' @import GenomicRanges
 #' @import DESeq2
 #' @import IRanges
@@ -461,7 +460,9 @@ saseRfindEncodingDim <- function(se,
         n <- m
         m <- mtemp
     }
-    dimensions <- sum(d >= (optimal_SVHT_coef(m/n,sigma_known = FALSE) * median(d)))
+    beta <- m/n
+    threshold <- 0.56*beta^3 - 0.95*beta^2 + 1.82*beta + 1.43
+    dimensions <- sum(d >= threshold * median(d))
     return(dimensions)
 }
 
