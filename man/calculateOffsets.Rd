@@ -71,10 +71,10 @@ An updated `SummarizedExperiment` instance, now including an
 an `realCounts` matrix is available in the assays slot, which correspond to
 the original counts, while the `counts` matrix in the assays slot is updated
 with to `zeroCountOffsets` when the calculated offset is equal to 0. When
-`saveall` is TRUE, also matrices `Locuscounts`, `Locusoffsets`, `ASplicounts`
-and `ASplioffsets` are saved in the assays slot, corresponding to the
-adapted counts and offsets using the `locus` rowData column, and using the
-`symbol` rowData column respectively.
+`saveall` is TRUE, also matrices `Locuscounts`, `Locusoffsets`,
+`ASplicounts`and `ASplioffsets` are saved in the assays slot, corresponding
+to the adapted counts and offsets using the `locus` rowData column, and
+using the `symbol` rowData column respectively.
 }
 \description{
 calculateOffsets is used to calculate the offsets for aberrant expression or

@@ -45,8 +45,8 @@
 #' @param fit character value. Both `fast` or `edgeR` can be used.
 #' `fast` uses a quadratic mean-variance relationship for fast estimation of
 #' the mean when many covariates or latent factors are included, without
-#' compromising upon power. `edgeR` can be used to perform parameter estimation,
-#' although not scaling well with many covariates or latent factors.
+#' compromising upon power. `edgeR` can be used to perform parameter estimation
+#' , although not scaling well with many covariates or latent factors.
 #'
 #' @param scale logical value to scale the deviance residuals before
 #' performing the singular value decomposition.
@@ -87,7 +87,8 @@
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom pnorm qnbinom rlnorm
+#' rmultinom runif
 #'
 #'
 #' @examples
@@ -246,15 +247,20 @@ saseRfit <- function(se,
 
 
 .full_design <- function(se){
-    if (getDesign(se) != ~1){
+    if(metadata(se)[['optimalEncDim']] == 0){
+    design <- model.matrix(getDesign(se),
+                               data = colData(se))
+    } else if (getDesign(se) != ~1){
         env <- environment()
         formula <- update(getDesign(se), ~ . + metadata(se)[['svd_u']][,
-                                1:metadata(se)[['optimalEncDim']]], env = env)
+                                seq_len(metadata(se)[['optimalEncDim']])],
+                                env = env)
         environment(formula) <- env
         design <- model.matrix(formula, data = colData(se))
     } else {
         design <- model.matrix(~1+metadata(se)[['svd_u']][,
-                        1:metadata(se)[['optimalEncDim']]], data = colData(se))
+                        seq_len(metadata(se)[['optimalEncDim']])],
+                        data = colData(se))
     }
 
     metadata(se)[["full_design"]] <- design
@@ -273,11 +279,12 @@ saseRfit <- function(se,
     # Extract the number of latent factors that is estimated to be optimal
     # by prior knowledge or hyperparameter optimisation.
     if(fit == "fast"){
-    number_of_known_confounders <- dim(model.matrix(getDesign(se), data = colData(se)))[2]
+    number_of_known_confounders <- dim(model.matrix(getDesign(se),
+                                                    data = colData(se)))[2]
     total_dimensions <- dimensions + number_of_known_confounders
 
-    final_design <- metadata(se)[["full_design"]][,1:total_dimensions]
-    beta_initial_reduced_dimensions <- beta_initial[,1:total_dimensions]
+    final_design <- metadata(se)[["full_design"]][,seq_len(total_dimensions)]
+    beta_initial_reduced_dimensions <- beta_initial[,seq_len(total_dimensions)]
 
     # Form a design matrix with the known covariates and latent factors.
     # Then, an edgeR regression is performed with these known covariates
@@ -303,11 +310,15 @@ saseRfit <- function(se,
         }
         else if (getDesign(se) != ~1){
             env <- environment()
-            formula <- update(getDesign(se), ~ . + metadata(se)[['svd_u']][,1:dimensions], env = env)
+            formula <- update(getDesign(se), ~ . +
+                                 metadata(se)[['svd_u']][,seq_len(dimensions)],
+                              env = env)
             environment(formula) <- env
             design <- model.matrix(formula, data = colData(se))
         } else {
-            design <- model.matrix(~ 1 + metadata(se)[['svd_u']][,1:dimensions], data = colData(se))
+            design <- model.matrix(~ 1 +
+                                metadata(se)[['svd_u']][,seq_len(dimensions)],
+                                data = colData(se))
         }
         DGE <- .fitEdgeRDisp(se=se, design = design)
         fit_DGE <- glmFit(y = DGE)
@@ -377,7 +388,11 @@ saseRfit <- function(se,
 
 
 
-.adapted_IRLS <- function(se, analysis, final_design, initial_beta, maxiter=50){
+.adapted_IRLS <- function(se,
+                          analysis,
+                          final_design,
+                          initial_beta,
+                          maxiter=50){
 
     if(analysis == "AE"){
         max <- matrix(.Machine$double.xmax,ncol = ncol(se),nrow = nrow(se))
@@ -389,7 +404,7 @@ saseRfit <- function(se,
     inverse <- solve(t(design)%*%design)
     mu <- exp(t(design%*%t(initial_beta)))*assays(se)$offsets
 
-    for(i in c(1:maxiter)){
+    for(i in seq_len(maxiter)){
         z <- log(mu/assays(se)$offsets) + counts(se)/mu - 1
 
         beta <- inverse %*% t(design)%*%t(z)
@@ -418,7 +433,9 @@ saseRfit <- function(se,
 
     metadata(se_removed)$svd_u_removed <- svd_u_removed
 
-    mu_removed <- assays(se_removed)$offsets * exp(t(cbind(1,svd_u_removed[,1:dimensions]) %*% metadata(se)$coefficients))
+    mu_removed <- assays(se_removed)$offsets *
+        exp(t(cbind(1,svd_u_removed[, seq_len(dimensions)]) %*%
+                  metadata(se)$coefficients))
     assays(se_removed)$mu <- mu_removed
 
     se_removed <- .calcPValues(se_removed, mu_removed, rowData(se)$theta)
@@ -428,7 +445,8 @@ saseRfit <- function(se,
 }
 
 .locusPValues <- function(se){
-    pvalues_before_group <- data.frame(assays(se)$pValue,"locus" = rowData(se)$locus)
+    pvalues_before_group <- data.frame(assays(se)$pValue,
+                                       "locus" = rowData(se)$locus)
 
     pvalues_grouped <- pvalues_before_group %>% group_by(locus) %>%
         summarise(across(colnames(se),function(i) min(i)))
@@ -444,7 +462,10 @@ saseRfit <- function(se,
 
 .adjustPValues <- function(se, method = "BH"){
     assay(se, 'pValueAdjust', withDimnames=FALSE) <-
-        apply(X = assay(se, 'pValue', withDimnames=FALSE), MARGIN = 2, FUN = p.adjust, method = method)
+        apply(X = assay(se, 'pValue', withDimnames=FALSE),
+              MARGIN = 2,
+              FUN = p.adjust,
+              method = method)
     metadata(se)[['pValueAdjustMethod']] <- method
     return(se)
 }

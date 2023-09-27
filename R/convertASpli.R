@@ -44,7 +44,8 @@
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm
+#' rmultinom runif
 #' @examples
 #' data(saseRExample, package = "saseR")
 #'
@@ -90,7 +91,7 @@ convertASpli <- function(ASpliSE, type="none", filter = TRUE, ...){
     se <- SummarizedExperiment::SummarizedExperiment(
         assays = SimpleList(
             "counts" =
-                as.matrix(ASpliSE@metadata$geneCounts[,ASpliSE@colData$Names])),
+               as.matrix(ASpliSE@metadata$geneCounts[,ASpliSE@colData$Names])),
         metadata = list(
             "DataType" = "gene"),
         rowData =
@@ -147,15 +148,17 @@ convertASpli <- function(ASpliSE, type="none", filter = TRUE, ...){
 
     rowData <- DataFrame(
         ASpliSE@metadata$junctionCounts[,
-                                        !(colnames(ASpliSE@metadata$junctionCounts) %in%
+                            !(colnames(ASpliSE@metadata$junctionCounts) %in%
                                               ASpliSE@colData$Names)],
         "ASpliCluster" = NA)
 
-    rowData$ASpliCluster[match(rownames(clustercounts), rownames(rowData))] <- clustercounts$locus
+    rowData$ASpliCluster[match(rownames(clustercounts), rownames(rowData))] <-
+        clustercounts$locus
 
     se <- SummarizedExperiment::SummarizedExperiment(
         assays = SimpleList(
-            "counts" = as.matrix(ASpliSE@metadata$junctionCounts[,ASpliSE@colData$Names])),
+            "counts" = as.matrix(
+                ASpliSE@metadata$junctionCounts[,ASpliSE@colData$Names])),
         metadata = list(
             "DataType" = "junctions"),
         rowData = rowData,

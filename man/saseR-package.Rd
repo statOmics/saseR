@@ -13,6 +13,7 @@ Useful links:
 \itemize{
   \item \url{https://github.com/statOmics/saseR}
   \item \doi{10.1101/2023.06.29.547014}
+  \item Report bugs at \url{https://github.com/statOmics/saseR/issues}
 }
 
 }

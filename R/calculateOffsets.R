@@ -67,10 +67,10 @@
 #' an `realCounts` matrix is available in the assays slot, which correspond to
 #' the original counts, while the `counts` matrix in the assays slot is updated
 #' with to `zeroCountOffsets` when the calculated offset is equal to 0. When
-#' `saveall` is TRUE, also matrices `Locuscounts`, `Locusoffsets`, `ASplicounts`
-#' and `ASplioffsets` are saved in the assays slot, corresponding to the
-#' adapted counts and offsets using the `locus` rowData column, and using the
-#' `symbol` rowData column respectively.
+#' `saveall` is TRUE, also matrices `Locuscounts`, `Locusoffsets`,
+#' `ASplicounts`and `ASplioffsets` are saved in the assays slot, corresponding
+#' to the adapted counts and offsets using the `locus` rowData column, and
+#' using the `symbol` rowData column respectively.
 #'
 #' @import ASpli
 #' @import edgeR
@@ -92,7 +92,8 @@
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom
+#' rlnorm rmultinom runif
 #' @examples
 #'
 #' data(saseRExample, package = "saseR")
@@ -127,8 +128,8 @@ calculateOffsets <- function(se,
         DGE <- edgeR::DGEList(counts=counts(se))
         DGE <- edgeR::calcNormFactors(DGE)
 
-        assay(se, 'offsets', withDimnames = FALSE) <- matrix(rep(c(DGE$samples$lib.size *
-                                               DGE$samples$norm.factors),
+        assay(se, 'offsets', withDimnames = FALSE) <-
+            matrix(rep(c(DGE$samples$lib.size * DGE$samples$norm.factors),
                                          each = nrow(se)),
                                      ncol = ncol(se))
     } else if (method == "geommean"){ # DESeq2 size factors
@@ -143,7 +144,8 @@ calculateOffsets <- function(se,
 
         assays(se)$offsets <- matrix(1, ncol = ncol(se), nrow = nrow(se))
 
-    } else if (method %in% c("AS", "proportion")){ # Using the aggregation column to define proportions
+    } else if (method %in% c("AS", "proportion")){
+        # Using the aggregation column to define proportions
         if(is.null(aggregation)){
             if(is.null(se@metadata$DataType))
                 aggregation <- "locus"
@@ -160,7 +162,8 @@ calculateOffsets <- function(se,
             stop("zeroOffsets must be larger than 0.")
         }
 
-        message(paste("Using ", aggregation, " column in rowData to calculate offsets.", sep = ""))
+        message("Using ", aggregation,
+                " column in rowData to calculate offsets.")
         offsets <- aggregate(assays(se)$counts,
                              by = list("locus" =
                                        as.factor(rowData(se)[,aggregation])),
@@ -190,19 +193,22 @@ calculateOffsets <- function(se,
             if(se@metadata$DataType == "junctions" &
                aggregation == "symbol" &
                mergeGeneASpli == TRUE &
-               sum(rowData(se)$symbol == "-" & (!is.na(rowData(se)$ASpliCluster))) != 0){
+               sum(rowData(se)$symbol == "-" &
+                   (!is.na(rowData(se)$ASpliCluster))) != 0){
                 if("ASpliCluster" %in% colnames(rowData(se))){
 
                     offsets <- aggregate(assays(se)$realCounts,
                                          by = list("locus" =
-                                                       as.factor(rowData(se)[,"ASpliCluster"])),
+                                    as.factor(rowData(se)[,"ASpliCluster"])),
                                          FUN = sum)
 
-                    offsets <- merge(list("locus" = rowData(se)[,"ASpliCluster"]),
+                    offsets <- merge(list("locus" =
+                                              rowData(se)[,"ASpliCluster"]),
                                      offsets,
                                      by = "locus")
 
-                    order <- match(rowData(se)[,"ASpliCluster"], offsets[,"locus"])
+                    order <- match(rowData(se)[,"ASpliCluster"],
+                                   offsets[,"locus"])
                     offsets <- offsets[order,] %>% mutate("locus" = NULL)
 
                     colnames(offsets) <- colnames(se)
@@ -218,21 +224,36 @@ calculateOffsets <- function(se,
                     assays(se)$Locusoffsets <- assays(se)$offsets
 
                     assays(se)$counts[rowData(se)$symbol == "-" &
-                                          (!is.na(rowData(se)$ASpliCluster))] <- assays(se)$ASplicounts[rowData(se)$symbol == "-" &
-                                                                                                            (!is.na(rowData(se)$ASpliCluster))]
-                    assays(se)$offsets[rowData(se)$symbol == "-" &
-                                          (!is.na(rowData(se)$ASpliCluster))] <- assays(se)$ASplioffsets[rowData(se)$symbol == "-" &
-                                                                                                             (!is.na(rowData(se)$ASpliCluster))]
-                    rowData(se)$locus <- rowData(se)$symbol
-                    levels(rowData(se)$locus) <- c(levels(rowData(se)$locus),c(paste("ASpliCluster_", rowData(se)$ASpliCluster[rowData(se)$symbol == "-" &
-                                                                                                                                 (!is.na(rowData(se)$ASpliCluster))], sep = "")))
-                    rowData(se)$locus[rowData(se)$symbol == "-" &
-                                          (!is.na(rowData(se)$ASpliCluster))] <- paste("ASpliCluster_", rowData(se)$ASpliCluster[rowData(se)$symbol == "-" &
-                                                                                                                                     (!is.na(rowData(se)$ASpliCluster))], sep = "")
-                    rowData(se)$BooleanASpliCluster <- rowData(se)$symbol == "-" & (!is.na(rowData(se)$ASpliCluster))
+                                         (!is.na(rowData(se)$ASpliCluster))] <-
+                        assays(se)$ASplicounts[rowData(se)$symbol == "-" &
+                             (!is.na(rowData(se)$ASpliCluster))]
 
-                    message(paste("Changed ", sum(rowData(se)$symbol == "-" &
-                                                      (!is.na(rowData(se)$ASpliCluster))), " rows to ASpli cluster offsets.", sep = ""))
+                    assays(se)$offsets[rowData(se)$symbol == "-" &
+                                         (!is.na(rowData(se)$ASpliCluster))] <-
+                        assays(se)$ASplioffsets[rowData(se)$symbol == "-" &
+                                         (!is.na(rowData(se)$ASpliCluster))]
+
+                    rowData(se)$locus <- rowData(se)$symbol
+
+                    levels(rowData(se)$locus) <-
+                        c(levels(rowData(se)$locus),c(paste("ASpliCluster_",
+                        rowData(se)$ASpliCluster[rowData(se)$symbol == "-" &
+                            (!is.na(rowData(se)$ASpliCluster))], sep = "")))
+
+                    rowData(se)$locus[rowData(se)$symbol == "-" &
+                                         (!is.na(rowData(se)$ASpliCluster))] <-
+                        paste("ASpliCluster_",
+                          rowData(se)$ASpliCluster[rowData(se)$symbol == "-" &
+                                (!is.na(rowData(se)$ASpliCluster))], sep = "")
+
+                    rowData(se)$BooleanASpliCluster <-
+                        rowData(se)$symbol == "-" &
+                        (!is.na(rowData(se)$ASpliCluster))
+
+                    message("Changed ", sum(rowData(se)$symbol == "-" &
+                                          (!is.na(rowData(se)$ASpliCluster))),
+                            " rows to ASpli cluster offsets.")
+
                     if(saveall == FALSE){ #remove output for memory saving
                         assays(se)$Locuscounts <- NULL
                         assays(se)$Locusoffsets <- NULL
@@ -245,9 +266,12 @@ calculateOffsets <- function(se,
             }
         }
         if(filterna == TRUE){
-            filter <- (!is.na(rowData(se)$locus) & rowData(se)$locus != "-" & rowData(se)$locus != "noHit")
+            filter <- (!is.na(rowData(se)$locus) &
+                           rowData(se)$locus != "-" &
+                           rowData(se)$locus != "noHit")
             se <- se[filter, ]
-            message(paste(sum(!filter), " features filtered due to NA, '-', or 'noHit' locus.", sep = ""))
+            message(sum(!filter),
+                    " features filtered due to NA, '-', or 'noHit' locus.")
         }
     } else {
         stop("Offset calculation method not found.")

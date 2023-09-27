@@ -16,8 +16,13 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-features used to count bam-files. These are obtained by binGenome from ASpli.
+features used to count bam-files. These are obtained by
+binGenome from ASpli.
 }
 \references{
-Estefania Mancini, Andres Rabinovich, Javier Iserte, Marcelo Yanovsky, Ariel Chernomoretz, ASpli: integrative analysis of splicing landscapes through RNA-Seq assays, Bioinformatics, Volume 37, Issue 17, September 2021, Pages 2609–2616, https://doi.org/10.1093/bioinformatics/btab141
+Estefania Mancini, Andres Rabinovich, Javier Iserte, Marcelo
+Yanovsky, Ariel Chernomoretz, ASpli: integrative analysis of splicing
+landscapes through RNA-Seq assays, Bioinformatics, Volume 37, Issue 17,
+September 2021, Pages 2609–2616,
+https://doi.org/10.1093/bioinformatics/btab141
 }

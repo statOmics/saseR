@@ -47,8 +47,8 @@ back-end to be used for computations. See
 \item{fit}{character value. Both `fast` or `edgeR` can be used.
 `fast` uses a quadratic mean-variance relationship for fast estimation of
 the mean when many covariates or latent factors are included, without
-compromising upon power. `edgeR` can be used to perform parameter estimation,
-although not scaling well with many covariates or latent factors.}
+compromising upon power. `edgeR` can be used to perform parameter estimation
+, although not scaling well with many covariates or latent factors.}
 
 \item{scale}{logical value to scale the deviance residuals before
 performing the singular value decomposition.}

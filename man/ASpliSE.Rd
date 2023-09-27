@@ -10,5 +10,7 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-SummarizedExperiment containing gene counts, bin counts and junction counts in the metadata slots, together with some rowData information. Output from BamtoAspliCounts.
+SummarizedExperiment containing gene counts, bin counts and
+junction counts in the metadata slots, together with some rowData
+information. Output from BamtoAspliCounts.
 }

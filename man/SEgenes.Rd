@@ -10,5 +10,6 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-SummarizedExperiment containing gene-level counts to perform an example aberrant expression analysis.
+SummarizedExperiment containing gene-level counts to perform
+an example aberrant expression analysis.
 }

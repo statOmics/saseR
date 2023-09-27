@@ -22,9 +22,9 @@
 #' `colData` is a `DataFrame` describing the samples in the experiment. Also,
 #' include `offsets` in the assays slot, which can be calculated with the
 #' `calculateOffsets` function.
-#' Finally, specify the experimental `design` as a formula in the metadata slot.
-#'  This formula must be based on the colData, and should be `~1` if no known
-#'  covariates are included.
+#' Finally, specify the experimental `design` as a formula in the metadata
+#' slot. This formula must be based on the colData, and should be `~1` if no
+#' known covariates are included.
 #'
 #' @param method The method used to estimate the optimal number of latent
 #'  factors included in the regression framework. Default is `GD`, which uses
@@ -43,8 +43,8 @@
 #' @param freq the frequency of corrupted counts injected in the dateset. Only
 #' used when using the `DAE` method.
 
-#' @param zScore The mean magnitude of the corrupted counts in the dataset. Only
-#' used when using the `DAE` method.
+#' @param zScore The mean magnitude of the corrupted counts in the dataset.
+#' Only used when using the `DAE` method.
 
 #' @param sdlog Standard deviation of the distribution of the corrupted counts
 #' on the log-scale. Only used when using the `DAE` method and when lnorm is
@@ -64,7 +64,8 @@
 #' back-end to be used for computations. See
 #' \code{bpparam} in \code{BiocParallel} package for details.
 
-#' @param scale boolean. If TRUE, the deviance residuals upon will be scaled to mean 0 and sd = 1 before estimating the latent factors.
+#' @param scale boolean. If TRUE, the deviance residuals upon will be scaled to
+#'  mean 0 and sd = 1 before estimating the latent factors.
 
 
 #' @param aggregation character vector representing the column in the rowData
@@ -102,7 +103,8 @@
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats model.matrix p.adjust pnbinom  pnorm  qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom pnorm qnbinom rlnorm
+#' rmultinom runif
 #' @examples
 #'
 #' data(saseRExample, package = "saseR")
@@ -142,12 +144,13 @@ saseRfindEncodingDim <- function(se,
     } else if(method == "DAE"){
 
         if(!(exists("analysis"))){
-            stop("Please specify an analysis to make. Options are AE for aberrant
-             expression and AS for aberrant splicing.")
+            stop("Please specify an analysis to make. Options are AE for
+            aberrant expression and AS for aberrant splicing.")
 
         } else if(!(analysis %in% c("AE", "AS"))){
-            stop("Only AE and AS in the analysis argument are possible to estimate
-             the optimal number of latent factors with a denoising autoencoder")
+            stop("Only AE and AS in the analysis argument are possible to
+            estimate the optimal number of latent factors with a denoising
+            autoencoder")
 
         } else if(analysis == "AE"){
             .DAE_AE(se,
@@ -419,7 +422,7 @@ saseRfindEncodingDim <- function(se,
     } else if (analysis == "AS"){
         eloss <- .evalAucPRLossSplicing(se)
     }
-    print(paste0('Evaluation loss: ', eloss,' for q=',dimensions))
+    message('Evaluation loss: ', eloss,' for q=',dimensions)
     return(eloss)
 }
 
@@ -525,10 +528,12 @@ saseRfindEncodingDim <- function(se,
         prob_z <- pnorm(zScore[idxRow, idxCol])
 
         if (index[idxRow, idxCol]==1){
-            art_out <- qnbinom(p=prob_z, mu=counts(se)[idxRow,idxCol], size=theta)
+            art_out <- qnbinom(p=prob_z, mu=counts(se)[idxRow,idxCol],
+                               size=theta)
         }
         else {
-            art_out <- qnbinom(p=1-prob_z, mu=counts(se)[idxRow,idxCol], size=theta)
+            art_out <- qnbinom(p=1-prob_z, mu=counts(se)[idxRow,idxCol],
+                               size=theta)
         }
 
         # only insert outliers if they are different from before
@@ -551,7 +556,13 @@ saseRfindEncodingDim <- function(se,
 
 
 # Adapted from FRASER - Mertes et al.
-.injectOutliersHyperparamSplicing <- function(se, freq, zScore, inj, lnorm, sdlog, deltaMin = 0.2){
+.injectOutliersHyperparamSplicing <- function(se,
+                                              freq,
+                                              zScore,
+                                              inj,
+                                              lnorm,
+                                              sdlog,
+                                              deltaMin = 0.2){
     # copy true counts to be able to acces them later
     assay(se, 'trueCounts', withDimnames=FALSE) <- counts(se)
 
@@ -587,8 +598,10 @@ saseRfindEncodingDim <- function(se,
         outlier_bin <- sample(binnames, 1)
         other_bins <- binnames[!(binnames %in% outlier_bin)]
 
-        currentProportionOutlier <- assays(se)$counts[outlier_bin,idxCol] / assays(se)$offsets[outlier_bin,idxCol]
-        ProportionOthers <- assays(se)$counts[other_bins,idxCol] / assays(se)$offsets[other_bins,idxCol]
+        currentProportionOutlier <- assays(se)$counts[outlier_bin,idxCol] /
+            assays(se)$offsets[outlier_bin,idxCol]
+        ProportionOthers <- assays(se)$counts[other_bins,idxCol] /
+            assays(se)$offsets[other_bins,idxCol]
 
 
         if(is.nan(currentProportionOutlier) | length(ProportionOthers) == 0){
@@ -612,29 +625,35 @@ saseRfindEncodingDim <- function(se,
                 }
             }
 
-            DeltaProportionOutlier <- runif(n = 1, min = deltaMin, max = deltaMax)
+            DeltaProportionOutlier <- runif(n = 1,
+                                            min = deltaMin,
+                                            max = deltaMax)
 
-            #outlier_count <- round((currentProportion + DeltaProportionOutlier*index[idxRow,idxCol])*(assays(se)$offsets[outlier_bin,idxCol]+2)-1,0)
             if(currentProportionOutlier != 1){
-                DeltaOthers <- -DeltaProportionOutlier*index[idxRow,idxCol] * (ProportionOthers/(1-currentProportionOutlier))
+                DeltaOthers <- -DeltaProportionOutlier*index[idxRow,idxCol] *
+                    (ProportionOthers/(1-currentProportionOutlier))
             } else {
-                DeltaOthers <- -DeltaProportionOutlier*index[idxRow,idxCol] / rep(1/length(other_bins), times = length(other_bins))
+                DeltaOthers <- -DeltaProportionOutlier*index[idxRow,idxCol] /
+                    rep(1/length(other_bins), times = length(other_bins))
 
             }
 
-            #other_counts <- round((ProportionOthers + DeltaOthers)*(assays(se)$offsets[other_bins,idxCol]+2)-1,0)
-            if((currentProportionOutlier + DeltaProportionOutlier*index[idxRow,idxCol] < 0) ||
+            if((currentProportionOutlier +
+                DeltaProportionOutlier*index[idxRow,idxCol] < 0) ||
                ( ProportionOthers + DeltaOthers < 0)){
             }
             injectedCounts <- rmultinom(n = 1,
-                                        size = assays(se)$offsets[other_bins,idxCol],
-                                        prob = c(currentProportionOutlier + DeltaProportionOutlier*index[idxRow,idxCol],
-                                                 ProportionOthers + DeltaOthers))
+                                size = assays(se)$offsets[other_bins,idxCol],
+                                prob = c(currentProportionOutlier +
+                                  DeltaProportionOutlier*index[idxRow,idxCol],
+                                     ProportionOthers + DeltaOthers))
             rownames(injectedCounts) <- c(outlier_bin,other_bins)
 
             assays(se)$counts[rownames(injectedCounts),idxCol] <- injectedCounts
             binOutliers[outlier_bin,idxCol] <- index[idxRow,idxCol]
-            locusOutliers[rownames(locusOutliers) == rowData(se)[outlier_bin,"locus"],idxCol] <- index[idxRow,idxCol]
+            locusOutliers[rownames(locusOutliers) ==
+                              rowData(se)[outlier_bin,"locus"],idxCol] <-
+                                                        index[idxRow,idxCol]
 
         }
     }
@@ -666,7 +685,8 @@ saseRfindEncodingDim <- function(se,
 .evalAucPRLossSplicing <- function(se){
     # Calculate the precision-recall curve of all p-values, using corrupted
     # counts as true positives.
-    order <- match(rownames(metadata(se)$locusCorruptedCounts),rownames(metadata(se)$pValuesLocus))
+    order <- match(rownames(metadata(se)$locusCorruptedCounts),
+                   rownames(metadata(se)$pValuesLocus))
     scores <- -as.vector( metadata(se)$pValuesLocus[order,])
     labels <- as.vector(metadata(se)$locusCorruptedCounts != 0) + 0
 

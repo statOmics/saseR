@@ -29,9 +29,9 @@ ordinary `matrix`, `DataFrame`, a `sparseMatrix` or a `DelayedMatrix`.
 `colData` is a `DataFrame` describing the samples in the experiment. Also,
 include `offsets` in the assays slot, which can be calculated with the
 `calculateOffsets` function.
-Finally, specify the experimental `design` as a formula in the metadata slot.
- This formula must be based on the colData, and should be `~1` if no known
- covariates are included.}
+Finally, specify the experimental `design` as a formula in the metadata
+slot. This formula must be based on the colData, and should be `~1` if no
+known covariates are included.}
 
 \item{method}{The method used to estimate the optimal number of latent
 factors included in the regression framework. Default is `GD`, which uses
@@ -50,8 +50,8 @@ used when using the `DAE` method.}
 \item{freq}{the frequency of corrupted counts injected in the dateset. Only
 used when using the `DAE` method.}
 
-\item{zScore}{The mean magnitude of the corrupted counts in the dataset. Only
-used when using the `DAE` method.}
+\item{zScore}{The mean magnitude of the corrupted counts in the dataset.
+Only used when using the `DAE` method.}
 
 \item{sdlog}{Standard deviation of the distribution of the corrupted counts
 on the log-scale. Only used when using the `DAE` method and when lnorm is
@@ -73,7 +73,8 @@ back-end to be used for computations. See
 to be used to calculate offsets when injecting corrupted counts according to
 aberrant splicing. Only used when method is `DAE` and when analysis is `AE`.}
 
-\item{scale}{boolean. If TRUE, the deviance residuals upon will be scaled to mean 0 and sd = 1 before estimating the latent factors.}
+\item{scale}{boolean. If TRUE, the deviance residuals upon will be scaled to
+mean 0 and sd = 1 before estimating the latent factors.}
 
 \item{...}{Extra arguments for .fitRUV.}
 }

@@ -16,9 +16,9 @@ output:
 package: saseR
 abstract: |
   Main vignette for the saseR package. This vignette aims to provide a detailed 
-  description of an aberrant expression and splicing analysis using saseR. Also,
-  we show how to perform differential usage analysis using adapted offsets
-  in DESeq2 and edgeR.
+  description of an aberrant expression and splicing analysis using saseR. 
+  Also, we show how to perform differential usage analysis using adapted 
+  offsets in DESeq2 and edgeR.
 vignette: >
   %\VignetteIndexEntry{Main vignette: saseR analyses}
   %\VignetteEngine{knitr::rmarkdown}
@@ -35,22 +35,22 @@ library(knitr)
 in bulk RNA-seq datasets. It uses adapted offsets to model aberrant splicing
 with the negative binomial framework, and estimates the parameters on a 
 scalable and efficient manner. In this vignette, we first show how the 
-different functions of the `saseR` package can be used, after which we show how 
-to perform `differential usage` analysis with adapted offsets in conventional 
-bulk RNA-seq methods DESeq2 and edgeR.
+different functions of the `saseR` package can be used, after which we show 
+how to perform `differential usage` analysis with adapted offsets in 
+conventional bulk RNA-seq methods DESeq2 and edgeR.
 
 All details about the `saseR` model, statistical tests, the use of adapted 
-offsets to model proportions and the adapted parameter estimation are described 
-in our preprint [@Segers2023].
+offsets to model proportions and the adapted parameter estimation are 
+described in our preprint [@Segers2023].
 
 In this vignette, we analyse the data from the `ASpli` package [@ASpli],
 to show how a workflow for aberrant expression and splicing is done. 
 However, we note that this dataset is not specific for aberrant expression or 
 splicing analyses. The data consists of BAM-files which will be converted into 
-gene, bin,and junction reads, on which three different `saseR` analysis will be 
-performed (aberrant expression and two times an aberrant splicing analysis). 
-Next, we show how a differential usage/splicing analysis can be done using 
-DESeq2 [@Love] and edgeR [@Robinson] with adapted offsets.
+gene, bin,and junction reads, on which three different `saseR` analysis will 
+be performed (aberrant expression and two times an aberrant splicing 
+analysis). Next, we show how a differential usage/splicing analysis can be 
+done using DESeq2 [@Love] and edgeR [@Robinson] with adapted offsets.
 
 
 # Aberrant expression and splicing workflow
@@ -221,10 +221,10 @@ metadata(SEgenes)$design <- ~1
 
 For an aberrant expression analysis, we first retain only the genes that have
 sufficiently large counts. 
-Then, we need to calculate the offsets for our analysis. For aberrant expression
-analysis, we recommend using `TMM` or `geommean` for edgeR and DESeq2 
-normalisation respectively. This results in an offsets matrix in the assays
-slot. 
+Then, we need to calculate the offsets for our analysis. For aberrant 
+expression analysis, we recommend using `TMM` or `geommean` for edgeR and 
+DESeq2 normalisation respectively. This results in an offsets matrix in the 
+assays slot. 
 
 Note that for aberrant splicing detection, first offsets are calculated before
 filtering features that have low counts.
@@ -241,15 +241,15 @@ SEgenes <- calculateOffsets(SEgenes, method = "TMM")
 ```
 
 Having defined the `design` and the `offsets` of the analysis, we can continue
-to estimate the optimal `number of latent confounders` included in the regression 
-framework. This is often needed when performing aberrant expression or splicing 
-analysis to improve power. We obtain the latent factors by using `RUV` [@RUV], 
-which performs a `singular value decomposition on the deviance residuals`. Then, 
-we recommend using the Gavish and Donoho [@GavishDonoho] threshold for singular values 
-(`method = GD`) to choose upon the number of
-latent factors included in the final regression model. This is much faster, 
-while having similar performance compared to using a denoising autoencoder 
-(`method = DAE`). 
+to estimate the optimal `number of latent confounders` included in the 
+regression framework. This is often needed when performing aberrant expression 
+or splicing analysis to improve power. We obtain the latent factors by using 
+`RUV` [@RUV], which performs a 
+`singular value decomposition on the deviance residuals`. Then, 
+we recommend using the Gavish and Donoho [@GavishDonoho] threshold for singular 
+values (`method = GD`) to choose upon the number of latent factors included in
+the final regression model. This is much faster, while having similar 
+performance compared to using a denoising autoencoder (`method = DAE`). 
 
 ```{r}
 SEgenes <- saseRfindEncodingDim(SEgenes, method = "GD")
@@ -264,11 +264,11 @@ edgeR (`fit = edgeR`), but is set to default to our fast parameter estimation
 mean-variance relationship, which enables matrix multiplication while keeping
 parameter estimation unbiased. This is often required in the context of rare 
 diseases that need many latent factors to control for, which leads to ordinary
-fitting procedures such as DESeq2 and edgeR becoming slow. If the number of confounders
-included in the regression model is small (known confounders + latent factors),
-edgeR parameter estimation could be used, although it is not expected to give an 
-increase in performance. `analysis` is specified to `AE` to choose an aberrant
-expression analysis.
+fitting procedures such as DESeq2 and edgeR becoming slow. If the number of 
+confounders included in the regression model is small (known confounders + 
+latent factors), edgeR parameter estimation could be used, although it is not 
+expected to give an increase in performance. `analysis` is specified to `AE` 
+to choose an aberrant expression analysis.
 
 
 ```{r}
@@ -293,7 +293,8 @@ topGenes <- sapply(1:ncol(SEgenes),
                    function(x) {rownames(SEgenes)[order[1:5,x]]})
 
 significantgenes <- sapply(1:ncol(SEgenes), 
-                   function(x) {rownames(SEgenes)[assays(SEgenes)$pValueAdjust[,x] < 0.05]})
+              function(x) {
+                  rownames(SEgenes)[assays(SEgenes)$pValueAdjust[,x] < 0.05]})
 
 
 head(topPvalsGenes)
@@ -306,8 +307,8 @@ head(significantgenes)
 We will show how to perform an aberrant splicing analysis based on the bin and
 junction level counts. Note that other feature counts can also be used if 
 proportions of interest are to be modelled, which only requires the use of the
-correct offsets. We start from a SummarizedExperiment that contains the feature 
-counts of interest.
+correct offsets. We start from a SummarizedExperiment that contains the 
+feature counts of interest.
 
 First, a design formula is included in the metadata slot `design`. In this 
 example, we do not include known covariates, but only introduce an intercept.
@@ -351,8 +352,9 @@ SEjunctions <- calculateOffsets(SEjunctions,
 ```
 
 Then, after calculating the offsets for the aberrant splicing analysis, we
-filter the features that have very low counts. Note that for aberrant expression
-analyses, first the features are filtered, followed by calculating the offsets.
+filter the features that have very low counts. Note that for aberrant 
+expression analyses, first the features are filtered, followed by calculating 
+the offsets.
 
 ```{r}
 filterbins <- filterByExpr(SEbins)
@@ -363,11 +365,12 @@ SEjunctions <- SEjunctions[filterjunctions,]
 ```
 
 Having defined the `design` and the `offsets` of the analysis, we can continue
-to estimate the optimal `number of latent confounders` included in the regression 
-framework. This is often needed when performing aberrant expression or splicing 
-analysis to obtain better power. We obtain the latent factors by using `RUV` 
-[@RUV], which performs a `singular value decomposition on the deviance residuals`.
-Then, we recommend using the Gavish and Donoho [@GavishDonoho] threshold for 
+to estimate the optimal `number of latent confounders` included in the 
+regression framework. This is often needed when performing aberrant expression 
+or splicing analysis to obtain better power. We obtain the latent factors by 
+using `RUV` [@RUV], which performs a 
+`singular value decomposition on the deviance residuals`. Then, we recommend 
+using the Gavish and Donoho [@GavishDonoho] threshold for 
 singular values (`method = GD`) to choose upon the number of
 latent factors included in the final regression model. This is much faster, 
 while having similar performance compared to using a denoising autoencoder 
@@ -390,9 +393,9 @@ parameter estimation unbiased.This is often required in the context of rare
 diseases that need many latent factors to control for, which leads to ordinary
 fitting procedures such as edgeR becoming slow. If the number of confounders
 included in the regression model is small (known confounders + latent factors),
-edgeR parameter estimation could be used, although it is not expected to give an 
-increase in performance. `analysis` is specified on `AS` to choose an aberrant
-splicing analysis.
+edgeR parameter estimation could be used, although it is not expected to give 
+an increase in performance. `analysis` is specified on `AS` to choose an 
+aberrant splicing analysis.
 
 
 ```{r}
@@ -423,7 +426,8 @@ topBins <- sapply(1:ncol(SEbins),
                    function(x) {rownames(SEbins)[order[1:5,x]]})
 
 significantBins <- sapply(1:ncol(SEbins), 
-                   function(x) {rownames(SEbins)[assays(SEgenes)$pValueAdjust[,x] < 0.05]})
+                   function(x) {
+                    rownames(SEbins)[assays(SEgenes)$pValueAdjust[,x] < 0.05]})
 
 head(topPvalsBins)
 head(topBins)
@@ -443,10 +447,12 @@ topPvalsBinsAggregated <- sapply(1:ncol(SEbins),
 rownames(topPvalsBinsAggregated) <- NULL
 
 topBinsAggregated <- sapply(1:ncol(SEbins), 
-                   function(x) {rownames(metadata(SEbins)$pValuesLocus)[order[1:5,x]]})
+                   function(x) {
+                     rownames(metadata(SEbins)$pValuesLocus)[order[1:5,x]]})
 
 significantBinsAggregated <- sapply(1:ncol(SEbins), 
-                   function(x) {rownames(SEbins)[metadata(SEgenes)$pValuesLocus[,x] < 0.05]})
+              function(x) {
+                  rownames(SEbins)[metadata(SEgenes)$pValuesLocus[,x] < 0.05]})
 
 head(topPvalsBinsAggregated)
 head(topBinsAggregated)
@@ -510,8 +516,9 @@ se = summarizeOverlaps(
     ignore.strand=TRUE )
 ```
 
-Now that we have a count matrix, we can further specify the known covariates, which
-in this case is the condition between which we will test differential bin usage.
+Now that we have a count matrix, we can further specify the known covariates, 
+whichin this case is the condition between which we will test differential 
+bin usage.
 
 ```{r}
 colData(se)$condition <- factor(c(rep(c("control", "case"), each = 6)))
@@ -537,10 +544,10 @@ offsets <- offsetsGene[match(rowData(se)$gene_id, offsetsGene$gene), ] %>%
 
 Because currently it is not possible to include offsets that are equal to 0 in
 DESeq2/edgeR, we have to change these offsets. Here, we change the counts that
-correspond to an offset of 0 (these counts are also equal to 0 in a differential
-usage/splicing analysis) to 1, together with the corresponding offset. It is
-possible to change the offsets and/or counts to a number of chose, as long as 
-the offsets are not equal to 0.
+correspond to an offset of 0 (these counts are also equal to 0 in a 
+differential usage/splicing analysis) to 1, together with the corresponding 
+offset. It is possible to change the offsets and/or counts to a number of 
+choice, as long as the offsets are not equal to 0.
 
 ```{r}
 index <- offsets == 0
@@ -549,10 +556,10 @@ offsets[index] <- 1
 
 ```
 
-We can now perform a conventual DESeq2/edgeR analysis, using the custom offsets.
-For DESeq2, we include the offsets on the original scale, while for edgeR, we
-include these on the log-scale. For the DESeq2 analysis we can use the following
-code:
+We can now perform a conventual DESeq2/edgeR analysis, using the custom 
+offsets. For DESeq2, we include the offsets on the original scale, while for 
+edgeR, we include these on the log-scale. For the DESeq2 analysis we can use 
+the following code:
 
 ```{r}
 dds <- DESeqDataSetFromMatrix(countData = counts,

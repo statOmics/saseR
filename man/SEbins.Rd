@@ -10,5 +10,6 @@ data(saseRExample)
 Loads all data needed to run vignette and examples
 }
 \description{
-SummarizedExperiment containing bin-level counts to perform an example aberrant splicing analysis.
+SummarizedExperiment containing bin-level counts to perform
+an example aberrant splicing analysis.
 }

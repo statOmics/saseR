@@ -71,7 +71,8 @@
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam
-#' @importFrom stats model.matrix p.adjust pnbinom pnorm qnbinom rlnorm rmultinom runif
+#' @importFrom stats model.matrix p.adjust pnbinom pnorm qnbinom
+#' rlnorm rmultinom runif
 #'
 #' @examples
 #'
@@ -132,12 +133,12 @@ BamtoAspliCounts <- function(
 
 
 
-    ASpliSE <- SummarizedExperiment::SummarizedExperiment(metadata =
-                                                               list("geneCounts" = counts@gene.counts,
-                                                                   "binCounts" = counts@exon.intron.counts,
-                                                                    "junctionCounts" = jcounts@junctionsPJU,
-                                                                    "IRCounts" = jcounts@junctionsPIR),
-                                                           colData = list("Names" = rownames(targets)))
+    ASpliSE <- SummarizedExperiment::SummarizedExperiment(
+        metadata = list("geneCounts" = counts@gene.counts,
+                                  "binCounts" = counts@exon.intron.counts,
+                                   "junctionCounts" = jcounts@junctionsPJU,
+                                   "IRCounts" = jcounts@junctionsPIR),
+        colData = list("Names" = rownames(targets)))
     return(ASpliSE)
 
 }
@@ -162,7 +163,8 @@ BamtoAspliCounts <- function(
                           strandMode=strandMode,
                           BPPARAM = BPPARAM)
 
-    counts@.ASpliVersion = "2" #Marks ASpliCounts object with the ASpli update 2.0.0
+    counts@.ASpliVersion <- "2"
+    #Marks ASpliCounts object with the ASpli update 2.0.0
 
     return(counts)
 }
@@ -184,13 +186,14 @@ BamtoAspliCounts <- function(
 
     #Create result object
     counts <- new(Class="ASpliCounts")
-    counts@.ASpliVersion = "1" #Last version before 2.0.0 was 1.14.0.
+    counts@.ASpliVersion <- "1" #Last version before 2.0.0 was 1.14.0.
 
     #Generates sample names in case there arent any
     targets <- ASpli:::.generateSamplesNames(targets)
     counts@targets <- ASpli:::.condenseTargetsConditions(targets) #ACH
     group                  <- counts@targets$condition
-    counts@condition.order <- levels(factor( group, unique( group ), ordered = TRUE ))
+    counts@condition.order <- levels(factor( group, unique( group ),
+                                             ordered = TRUE ))
 
     #Minimal anchors
     minAnchor <- if ( ! is.null(minAnchor) ) minAnchor else 10
@@ -203,7 +206,7 @@ BamtoAspliCounts <- function(
     }
 
 
-    counts_list <- bplapply(X = c(1:ntargets), BPPARAM = BPPARAM,
+    counts_list <- bplapply(X = seq_len(ntargets), BPPARAM = BPPARAM,
                             FUN = function(i){
                                 .bamToCounts(counts = counts,
                                             features = features,
@@ -214,68 +217,88 @@ BamtoAspliCounts <- function(
                                             libType=libType,
                                             strandMode=strandMode)})
 
-    for (target in c(1:ntargets)){
+    for (target in seq_len(ntargets)){
 
         if(ncol(counts@gene.counts) == 0){
             counts@gene.counts <- counts_list[[target]]$gene.hits
         } else{
             counts@gene.counts <- cbind(counts@gene.counts,
-                                        ASpli:::.extractCountColumns(counts_list[[target]]$gene.hits, targets[target, ]))
-            colnames(counts@gene.counts)[ncol(counts@gene.counts)] <- rownames(targets)[target]
+                                        ASpli:::.extractCountColumns(
+                                            counts_list[[target]]$gene.hits,
+                                            targets[target, ]))
+            colnames(counts@gene.counts)[ncol(counts@gene.counts)] <-
+                rownames(targets)[target]
         }
 
 
         if(ncol(counts@exon.intron.counts) == 0){
             counts@exon.intron.counts <- counts_list[[target]]$exons.hits
         } else{
-            counts@exon.intron.counts <- cbind(counts@exon.intron.counts,
-                                               ASpli:::.extractCountColumns(counts_list[[target]]$exons.hits, targets[target, ]))
-            colnames(counts@exon.intron.counts)[ncol(counts@exon.intron.counts)] <- rownames(targets)[target]
+            counts@exon.intron.counts <-
+                cbind(counts@exon.intron.counts,
+                      ASpli:::.extractCountColumns(
+                          counts_list[[target]]$exons.hits,
+                          targets[target, ]))
+            colnames(counts@exon.intron.counts)[
+                ncol(counts@exon.intron.counts)] <- rownames(targets)[target]
         }
 
         if(ncol(counts@e1i.counts) == 0){
             counts@e1i.counts <- counts_list[[target]]$e1i.hits
         }else{
             counts@e1i.counts <- cbind(counts@e1i.counts,
-                                       ASpli:::.extractCountColumns(counts_list[[target]]$e1i.hits, targets[target, ]))
-            colnames(counts@e1i.counts)[ncol(counts@e1i.counts)] <- rownames(targets)[target]
+                                       ASpli:::.extractCountColumns(
+                                           counts_list[[target]]$e1i.hits,
+                                           targets[target, ]))
+            colnames(counts@e1i.counts)[ncol(counts@e1i.counts)] <-
+                rownames(targets)[target]
         }
 
         if(ncol(counts@ie2.counts) == 0){
             counts@ie2.counts <- counts_list[[target]]$ie2.hits
         }else{
             counts@ie2.counts <- cbind(counts@ie2.counts,
-                                       ASpli:::.extractCountColumns(counts_list[[target]]$ie2.hits, targets[target, ]))
-            colnames(counts@ie2.counts)[ncol(counts@ie2.counts)] <- rownames(targets)[target]
+                                       ASpli:::.extractCountColumns(
+                                           counts_list[[target]]$ie2.hits,
+                                           targets[target, ]))
+            colnames(counts@ie2.counts)[ncol(counts@ie2.counts)] <-
+                rownames(targets)[target]
         }
 
         if(ncol(counts@junction.counts) == 0){
             counts@junction.counts <- counts_list[[target]]$junction.hits
             junction.hits <- counts_list[[target]]$junction.hits
         }else{
-            dt1                    <- data.table(counts@junction.counts, keep.rownames = TRUE)
-            dt2                    <- data.table(ASpli:::.extractCountColumns(counts_list[[target]]$junction.hits,
-                                                                              targets[target, ]),
-                                                 keep.rownames = TRUE)
-            dt3                    <- data.frame(merge(dt1, dt2, by="rn", all.x=TRUE, all.y=TRUE))
+            dt1 <- data.table(counts@junction.counts, keep.rownames = TRUE)
+            dt2 <- data.table(ASpli:::.extractCountColumns(
+                counts_list[[target]]$junction.hits,
+                targets[target, ]),
+                keep.rownames = TRUE)
+            dt3                    <- data.frame(merge(dt1,
+                                                       dt2,
+                                                       by="rn",
+                                                       all.x=TRUE,
+                                                       all.y=TRUE))
             junction.hits <- counts_list[[target]]$junction.hits
-            for(s in c("junction", "gene", "strand", "multipleHit", "symbol", "gene_coordinates", "bin_spanned", "j_within_bin")){
+            for(s in c("junction", "gene", "strand", "multipleHit", "symbol",
+                       "gene_coordinates", "bin_spanned", "j_within_bin")){
                 dt3[, s]           <- as.character(dt3[, s])
                 junction.hits[, s] <- as.character(junction.hits[, s])
             }
             rownames(dt3)          <- dt3[, "rn"]
             dt3                    <- dt3[, -1]
-            dt3[dt2$rn, 1:8]       <- ASpli:::.extractDataColumns(junction.hits, targets[target, ])
+            dt3[dt2$rn, seq_len(8)]       <- ASpli:::.extractDataColumns(
+                junction.hits, targets[target, ])
             counts@junction.counts <- dt3
             counts@junction.counts[is.na(counts@junction.counts)] <- 0
         }
 
         if(length(grep("NA", rownames(counts@junction.counts))) > 0){
-            print(target)
+            message(target)
             break
         }
         if(length(grep("NA", rownames(junction.hits ))) > 0){
-            print(target)
+            message(target)
         }
         gc()
 
@@ -284,15 +307,23 @@ BamtoAspliCounts <- function(
 
 
 
-    for(s in c("junction", "gene", "strand", "multipleHit", "symbol", "gene_coordinates", "bin_spanned", "j_within_bin")){
+    for(s in c("junction", "gene", "strand", "multipleHit", "symbol",
+               "gene_coordinates", "bin_spanned", "j_within_bin")){
         counts@junction.counts[, s] <- as.factor(counts@junction.counts[, s])
     }
-    colnames(counts@junction.counts)[9:ncol(counts@junction.counts)] <- rownames(targets)
+    colnames(counts@junction.counts)[9:ncol(counts@junction.counts)] <-
+        rownames(targets)
     junctions.order <- sort(rownames(counts@junction.counts))
     junctions.order <- strsplit2(junctions.order, "[.]")
-    junctions.order <- GRanges(seqnames=junctions.order[, 1], IRanges(start=as.numeric(junctions.order[, 2]), end=as.numeric(junctions.order[, 3])))
+    junctions.order <- GRanges(seqnames=junctions.order[, 1],
+                               IRanges(start=as.numeric(junctions.order[, 2]),
+                                       end=as.numeric(junctions.order[, 3])))
     junctions.order <- sort(junctions.order)
-    junctions.order <- paste(junctions.order@seqnames, junctions.order@ranges@start, (junctions.order@ranges@start+junctions.order@ranges@width-1), sep=".")
+    junctions.order <- paste(
+        junctions.order@seqnames,
+        junctions.order@ranges@start,
+        (junctions.order@ranges@start+junctions.order@ranges@width-1),
+        sep=".")
     counts@junction.counts <- counts@junction.counts[junctions.order, ]
 
     # Create result object
@@ -374,12 +405,13 @@ jcounts <- function( counts,
                            strandMode=strandMode) {
 
         if(!.hasSlot(counts, ".ASpliVersion")){
-            counts@.ASpliVersion = "1" #Last version before 2.0.0 was 1.14.0.
+            counts@.ASpliVersion <- "1" #Last version before 2.0.0 was 1.14.0.
         }
         if(counts@.ASpliVersion == "1"){
             #Version conflict
             if(is.null(bam)){
-                stop("Counts object is ASpli v1 but no bam was loaded. Please see vignette for new pipeline.")
+                stop("Counts object is ASpli v1 but no bam was loaded. Please
+                     see vignette for new pipeline.")
             }
             .Deprecated("jCounts")
         }else{
@@ -387,11 +419,11 @@ jcounts <- function( counts,
         }
         minReadLength <- readLength
         cores <- 1
-        libType=libType
-        strandMode=strandMode
+        libType <- libType
+        strandMode <- strandMode
 
         as  <- new(Class = "ASpliAS")
-        as@.ASpliVersion = "1" #Last version before 2.0.0 was 1.14.0.
+        as@.ASpliVersion <- "1" #Last version before 2.0.0 was 1.14.0.
         as@targets <- targets
 
         #df0 <- countsj(counts)[ countsj(counts)$multipleHit == "-", ]
@@ -411,19 +443,20 @@ jcounts <- function( counts,
         # Junctions PIR:
         if(is.null(bam)) {
             ntargets <- nrow(targets)
-            for(target in 1:ntargets){
+            for(target in seq_len(ntargets)){
 
                 if(ntargets > 1){
                     #Load bam from current target
                     #agrego el libType y StrandMode
                     bam <- loadBAM(targets[target, ], cores = NULL,
                                    libType=libType, strandMode=strandMode)
-                    junctionsPIR <- .junctionsDiscover( df=jcounts,
-                                                        minReadLength=minReadLength,
-                                                        targets=targets[target, ],
-                                                        features=features,
-                                                        minAnchor = minAnchor,
-                                                        bam=bam)
+                    junctionsPIR <- .junctionsDiscover(
+                        df=jcounts,
+                        minReadLength=minReadLength,
+                        targets=targets[target, ],
+                        features=features,
+                        minAnchor = minAnchor,
+                        bam=bam)
 
                 }
 
@@ -432,7 +465,8 @@ jcounts <- function( counts,
                 if(ncol(as@junctionsPIR) == 0){
                     as@junctionsPIR <- junctionsPIR
                 }else{
-                    as@junctionsPIR <- cbind(as@junctionsPIR, junctionsPIR[, 3:6])
+                    as@junctionsPIR <- cbind(as@junctionsPIR,
+                                             junctionsPIR[, 3:6])
                 }
             }
             junctions.order <- c(1, 2,
@@ -440,13 +474,20 @@ jcounts <- function( counts,
                                  seq(from=4, to=ncol(as@junctionsPIR), by=4),
                                  seq(from=5, to=ncol(as@junctionsPIR), by=4))
             as@junctionsPIR <- as@junctionsPIR[, junctions.order]
-            colnames(as@junctionsPIR)[c(-2, -1)] <- rep(rownames(targets), times=3)
+            colnames(as@junctionsPIR)[c(-2, -1)] <- rep(rownames(targets),
+                                                        times=3)
             inicio_j1 <- 3
             inicio_j2 <- inicio_j1+nrow(targets)
             inicio_j3 <- inicio_j2+nrow(targets)
-            j1 <- .sumByCond( as@junctionsPIR[, inicio_j1:(inicio_j1+nrow(targets)-1)],     targets )
-            j2 <- .sumByCond( as@junctionsPIR[, inicio_j2:(inicio_j2+nrow(targets)-1)],     targets )
-            j3 <- .sumByCond( as@junctionsPIR[, inicio_j3:(inicio_j3+nrow(targets)-1)],     targets )
+            j1 <- .sumByCond(
+                as@junctionsPIR[, inicio_j1:(inicio_j1+nrow(targets)-1)],
+                targets )
+            j2 <- .sumByCond(
+                as@junctionsPIR[, inicio_j2:(inicio_j2+nrow(targets)-1)],
+                targets )
+            j3 <- .sumByCond(
+                as@junctionsPIR[, inicio_j3:(inicio_j3+nrow(targets)-1)],
+                targets )
             pirValues <- ( j1 + j2 ) / ( j1 + j2 + 2 * j3 )
             as@junctionsPIR <- cbind(as@junctionsPIR, pirValues)
         }else{
@@ -464,9 +505,9 @@ jcounts <- function( counts,
         jranges <- .createGRangesExpJunctions( rownames( jcounts ) )
 
         # : refactor this code to other functions
-        # ---------------------------------------------------------------------- #
-        # Get all bins that are intronic or are associated to a Intron retention
-        # event
+        # ----------------------------------------------------------------- #
+        # Get all bins that are intronic or are associated to a Intron
+        # retention event
         ic <- rbind( countsb(counts)[countsb(counts)$feature == "I",],
                      countsb(counts)[countsb(counts)$feature == "Io",],
                      countsb(counts)[countsb(counts)$event   == "IR*",],
@@ -480,8 +521,10 @@ jcounts <- function( counts,
         indexOrder <- match( dfe1e2$jbin, rownames( ic ) )
 
         # Get counts of inclusion junctions
-        e1i <- .extractCountColumns( countse1i( counts ), targets )[ rownames(ic) ,]
-        ie2 <- .extractCountColumns( countsie2( counts ), targets )[ rownames(ic) ,]
+        e1i <- .extractCountColumns(
+            countse1i( counts ), targets )[ rownames(ic) ,]
+        ie2 <- .extractCountColumns(
+            countsie2( counts ), targets )[ rownames(ic) ,]
 
         j3 <- data.frame( matrix( NA,
                                   nrow =  nrow( e1i ),
@@ -516,9 +559,9 @@ jcounts <- function( counts,
         message("Junctions IR PIR completed")
 
         as@irPIR <- result
-        # ---------------------------------------------------------------------- #
+        # ------------------------------------------------------------- #
 
-        # ---------------------------------------------------------------------- #
+        # ------------------------------------------------------------- #
         # Get all exons, except those that are associated to a intron retention
         # event
         ec <- countsb(counts)[countsb(counts)$feature == "E",]
@@ -540,19 +583,22 @@ jcounts <- function( counts,
             return( result )
         }
 
-        dfstart  <- .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'start' )
+        dfstart  <-
+            .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'start' )
         dfstart  <- fillAndReorderBy( dfstart , rownames( ec ) )
-        dfend    <- .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'end' )
+        dfend    <-
+            .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'end' )
         dfend    <- fillAndReorderBy( dfend , rownames( ec ) )
-        dfwithin <- .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'within' )
+        dfwithin <-
+            .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'within' )
         dfwithin <- fillAndReorderBy( dfwithin , rownames( ec ) )
 
         events   <- mcols( exranges ) $ event
-        # ---------------------------------------------------------------------- #
+        # ----------------------------------------------------------------- #
 
-        # ---------------------------------------------------------------------- #
-        # Get the subset of previosly selected exons and gets only those associated
-        # with an alternative splicing site usage event
+        # ----------------------------------------------------------------- #
+        # Get the subset of previosly selected exons and gets only those
+        # associated with an alternative splicing site usage event
         getAlternativeSS <- function( df, events ) {
             rbind(
                 df[ events == "Alt3ss", ],
@@ -568,14 +614,18 @@ jcounts <- function( counts,
         colnames(altJ2)[-ncol(altJ2)] <- rownames(targets)
         colnames(altJ3)[-ncol(altJ3)] <- rownames(targets)
 
-        sumAltJ1 <- .sumByCond( .extractCountColumns( altJ1, targets ), targets )
+        sumAltJ1 <- .sumByCond(
+            .extractCountColumns( altJ1, targets ), targets )
         sumAltJ1[is.na(sumAltJ1)] <- 0
-        sumAltJ2 <- .sumByCond( .extractCountColumns( altJ2, targets ), targets )
+        sumAltJ2 <- .sumByCond(
+            .extractCountColumns( altJ2, targets ), targets )
         sumAltJ2[is.na(sumAltJ2)] <- 0
-        sumAltJ3 <- .sumByCond( .extractCountColumns( altJ3, targets ), targets )
+        sumAltJ3 <- .sumByCond(
+            .extractCountColumns( altJ3, targets ), targets )
         sumAltJ3[is.na(sumAltJ3)] <- 0
 
-        altPsiValues <- ( sumAltJ1 + sumAltJ2 ) / ( sumAltJ1 + sumAltJ2 + sumAltJ3 )
+        altPsiValues <-
+            ( sumAltJ1 + sumAltJ2 ) / ( sumAltJ1 + sumAltJ2 + sumAltJ3 )
 
         result <- cbind(
             data.frame( event = mcols( exranges[ rownames( altJ1) ] )$ event ),
@@ -589,11 +639,12 @@ jcounts <- function( counts,
 
         message("Junctions AltSS PSI completed")
         altPSI( as ) <- result
-        # ---------------------------------------------------------------------- #
+        # ------------------------------------------------------------------- #
 
-        # ---------------------------------------------------------------------- #
-        # Get the subset of previosly selected exons and gets only those associated
-        # with an exon skipping event and those not assigned to any splice event.
+        # ------------------------------------------------------------------- #
+        # Get the subset of previosly selected exons and gets only those
+        # associated  with an exon skipping event and those not assigned to any
+        # splice event.
         getES <- function( df, events ) {
             rbind(
                 df[ events == "ES", ],
@@ -615,7 +666,8 @@ jcounts <- function( counts,
         sumEsJ3 <- .sumByCond( .extractCountColumns( esJ3, targets ), targets )
         sumEsJ3[is.na(sumEsJ3)] <- 0
 
-        esPsiValues <- ( sumEsJ1 + sumEsJ2 ) / ( sumEsJ1 + sumEsJ2 + 2 * sumEsJ3 )
+        esPsiValues <-
+            ( sumEsJ1 + sumEsJ2 ) / ( sumEsJ1 + sumEsJ2 + 2 * sumEsJ3 )
 
         result <- cbind(
             data.frame( event = mcols( exranges[ rownames( esJ1) ] )$ event ),
@@ -630,7 +682,7 @@ jcounts <- function( counts,
         message("Junctions ES PSI completed")
 
         esPSI( as ) <- result
-        # ---------------------------------------------------------------------- #
+        # ------------------------------------------------------------------ #
 
         # TODO: joint podria ser un getter, pero no es necesario mantener toda
         # esta data repetida

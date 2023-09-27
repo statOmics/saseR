@@ -2,7 +2,7 @@ Package: saseR
 Type: Package
 Title: Scalable Aberrant Splicing and Expression Retrieval
 Date: 2023-06-01
-Version: 0.99.2
+Version: 0.99.3
 Description: saseR is a highly performant and fast framework for aberrant expression and splicing analyses. The main functions are:
 	\itemize{
 	\item \code{\link{BamtoAspliCounts}} - Process BAM files to ASpli counts
@@ -22,7 +22,7 @@ Authors@R: c(person("Alexandre", "Segers", role = c("aut","cre"),
 		     email = "Elfride.Debaere@ugent.be"),
 	     person("Lieven","Clement", role="ctb",
 		     email = "Lieven.Clement@ugent.be"))
-Depends: R (>= 4.1)
+Depends: R (>= 4.3.0)
 Imports: ASpli,
 	 S4Vectors,
 	 BiocGenerics,
@@ -54,9 +54,13 @@ Encoding: UTF-8
 LazyData: FALSE
 RoxygenNote: 7.2.3
 biocViews:
+    DifferentialExpression, 
+    DifferentialSplicing,
     Regression,
     GeneExpression,
     AlternativeSplicing,
     RNASeq,
     Sequencing,
     Software
+BugReports:
+    https://github.com/statOmics/saseR/issues
