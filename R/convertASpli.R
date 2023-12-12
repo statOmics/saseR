@@ -40,6 +40,7 @@
 #' @import GenomicRanges
 #' @import DESeq2
 #' @import IRanges
+#' @importFrom igraph graph_from_edgelist clusters
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
@@ -141,8 +142,8 @@ convertASpli <- function(ASpliSE, type="none", filter = TRUE, ...){
     J2 <- as.character(junctions$EndHit)
     J3 <- rownames(junctions)
 
-    clusters <- ASpli:::.makeClusters(J1, J2, J3, bStrongFilter = FALSE)
-    clustercounts <- ASpli:::.makeCountDataWithClusters(
+    clusters <- .ASplimakeClusters(J1, J2, J3, bStrongFilter = FALSE)
+    clustercounts <- .ASplimakeCountDataWithClusters(
         junctions[names(clusters$membership),start_J3:end_J3],
         clusters)
 

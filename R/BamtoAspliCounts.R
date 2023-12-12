@@ -67,6 +67,7 @@
 #' @import GenomicRanges
 #' @import DESeq2
 #' @import IRanges
+#' @importFrom parallel mclapply
 #' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
@@ -189,8 +190,8 @@ BamtoAspliCounts <- function(
     counts@.ASpliVersion <- "1" #Last version before 2.0.0 was 1.14.0.
 
     #Generates sample names in case there arent any
-    targets <- ASpli:::.generateSamplesNames(targets)
-    counts@targets <- ASpli:::.condenseTargetsConditions(targets) #ACH
+    targets <- .ASpligenerateSamplesNames(targets)
+    counts@targets <- .ASplicondenseTargetsConditions(targets) #ACH
     group                  <- counts@targets$condition
     counts@condition.order <- levels(factor( group, unique( group ),
                                              ordered = TRUE ))
@@ -223,7 +224,7 @@ BamtoAspliCounts <- function(
             counts@gene.counts <- counts_list[[target]]$gene.hits
         } else{
             counts@gene.counts <- cbind(counts@gene.counts,
-                                        ASpli:::.extractCountColumns(
+                                        .ASpliextractCountColumns(
                                             counts_list[[target]]$gene.hits,
                                             targets[target, ]))
             colnames(counts@gene.counts)[ncol(counts@gene.counts)] <-
@@ -236,7 +237,7 @@ BamtoAspliCounts <- function(
         } else{
             counts@exon.intron.counts <-
                 cbind(counts@exon.intron.counts,
-                      ASpli:::.extractCountColumns(
+                      .ASpliextractCountColumns(
                           counts_list[[target]]$exons.hits,
                           targets[target, ]))
             colnames(counts@exon.intron.counts)[
@@ -247,7 +248,7 @@ BamtoAspliCounts <- function(
             counts@e1i.counts <- counts_list[[target]]$e1i.hits
         }else{
             counts@e1i.counts <- cbind(counts@e1i.counts,
-                                       ASpli:::.extractCountColumns(
+                                       .ASpliextractCountColumns(
                                            counts_list[[target]]$e1i.hits,
                                            targets[target, ]))
             colnames(counts@e1i.counts)[ncol(counts@e1i.counts)] <-
@@ -258,7 +259,7 @@ BamtoAspliCounts <- function(
             counts@ie2.counts <- counts_list[[target]]$ie2.hits
         }else{
             counts@ie2.counts <- cbind(counts@ie2.counts,
-                                       ASpli:::.extractCountColumns(
+                                       .ASpliextractCountColumns(
                                            counts_list[[target]]$ie2.hits,
                                            targets[target, ]))
             colnames(counts@ie2.counts)[ncol(counts@ie2.counts)] <-
@@ -270,7 +271,7 @@ BamtoAspliCounts <- function(
             junction.hits <- counts_list[[target]]$junction.hits
         }else{
             dt1 <- data.table(counts@junction.counts, keep.rownames = TRUE)
-            dt2 <- data.table(ASpli:::.extractCountColumns(
+            dt2 <- data.table(.ASpliextractCountColumns(
                 counts_list[[target]]$junction.hits,
                 targets[target, ]),
                 keep.rownames = TRUE)
@@ -287,7 +288,7 @@ BamtoAspliCounts <- function(
             }
             rownames(dt3)          <- dt3[, "rn"]
             dt3                    <- dt3[, -1]
-            dt3[dt2$rn, seq_len(8)]       <- ASpli:::.extractDataColumns(
+            dt3[dt2$rn, seq_len(8)]       <- .ASpliextractDataColumns(
                 junction.hits, targets[target, ])
             counts@junction.counts <- dt3
             counts@junction.counts[is.na(counts@junction.counts)] <- 0
@@ -348,12 +349,12 @@ BamtoAspliCounts <- function(
                            strandMode=strandMode)
 
     # Count Genes
-    gene.hits <- ASpli:::.counterGenes( bam, ASpli::featuresg( features ))
+    gene.hits <- .ASplicounterGenes( bam, ASpli::featuresg( features ))
     counts@gene.counts <- gene.hits
 
     # Count exons
-    bins <- ASpli::featuresb( features )
-    exons.hits <- ASpli:::.counterBin( bam, bins, gene.hits)
+    bins <- featuresb( features )
+    exons.hits <- .ASplicounterBin( bam, bins, gene.hits)
     counts@exon.intron.counts <- exons.hits
 
 
@@ -367,7 +368,7 @@ BamtoAspliCounts <- function(
     e1i <- introns
     start( e1i ) <- start( introns ) - ( minReadLength - minA )
     end( e1i )   <- start( introns ) + ( minReadLength - minA )
-    e1i.hits     <- ASpli:::.counterJbin(bam, e1i, gene.hits, minReadLength)
+    e1i.hits     <- .ASplicounterJbin(bam, e1i, gene.hits, minReadLength)
     counts@e1i.counts <- e1i.hits
 
 
@@ -375,11 +376,11 @@ BamtoAspliCounts <- function(
     ie2 <- introns
     start( ie2 ) <- end( introns ) - ( minReadLength - minA )
     end( ie2 )   <- end( introns ) + ( minReadLength - minA )
-    ie2.hits     <- ASpli:::.counterJbin( bam, ie2, gene.hits, minReadLength )
+    ie2.hits     <- .ASplicounterJbin( bam, ie2, gene.hits, minReadLength )
     counts@ie2.counts <- ie2.hits
 
     # Count junctions
-    junction.hits    <- ASpli:::.counterJunctions( features, bam, maxISize )
+    junction.hits    <- .ASplicounterJunctions( features, bam, maxISize )
     counts@junction.counts <- junction.hits
 
 
@@ -429,14 +430,14 @@ jcounts <- function( counts,
         #df0 <- countsj(counts)[ countsj(counts)$multipleHit == "-", ]
         #df0 <- df0[ df0$gene != "noHit" , ]
 
-        targets <- ASpli:::.condenseTargetsConditions( targets )
+        targets <- .ASplicondenseTargetsConditions( targets )
 
-        jcounts <- ASpli:::.filterJunctionBySample( df0=df0,
+        jcounts <- .ASplifilterJunctionBySample( df0=df0,
                                             targets=targets,
                                             threshold=threshold )
 
         # Junctions PSI:
-        junctionsPSI    <- ASpli:::.junctionsPSI_SUM( df0, targets )
+        junctionsPSI    <- .ASplijunctionsPSI_SUM( df0, targets )
         as@junctionsPJU <- junctionsPSI
         message("Junctions PJU completed")
 
@@ -479,13 +480,13 @@ jcounts <- function( counts,
             inicio_j1 <- 3
             inicio_j2 <- inicio_j1+nrow(targets)
             inicio_j3 <- inicio_j2+nrow(targets)
-            j1 <- .sumByCond(
+            j1 <- .ASplisumByCond(
                 as@junctionsPIR[, inicio_j1:(inicio_j1+nrow(targets)-1)],
                 targets )
-            j2 <- .sumByCond(
+            j2 <- .ASplisumByCond(
                 as@junctionsPIR[, inicio_j2:(inicio_j2+nrow(targets)-1)],
                 targets )
-            j3 <- .sumByCond(
+            j3 <- .ASplisumByCond(
                 as@junctionsPIR[, inicio_j3:(inicio_j3+nrow(targets)-1)],
                 targets )
             pirValues <- ( j1 + j2 ) / ( j1 + j2 + 2 * j3 )
@@ -502,7 +503,7 @@ jcounts <- function( counts,
         }
         message("Junctions PIR completed")
 
-        jranges <- .createGRangesExpJunctions( rownames( jcounts ) )
+        jranges <- .ASplicreateGRangesExpJunctions( rownames( jcounts ) )
 
         # : refactor this code to other functions
         # ----------------------------------------------------------------- #
@@ -521,9 +522,9 @@ jcounts <- function( counts,
         indexOrder <- match( dfe1e2$jbin, rownames( ic ) )
 
         # Get counts of inclusion junctions
-        e1i <- .extractCountColumns(
+        e1i <- .ASpliextractCountColumns(
             countse1i( counts ), targets )[ rownames(ic) ,]
-        ie2 <- .extractCountColumns(
+        ie2 <- .ASpliextractCountColumns(
             countsie2( counts ), targets )[ rownames(ic) ,]
 
         j3 <- data.frame( matrix( NA,
@@ -534,12 +535,12 @@ jcounts <- function( counts,
 
         j3bin <- rep( NA , nrow( j3 ) )
         j3bin[ indexOrder ] <- rownames( dfe1e2 )
-        j3[ indexOrder, ] <- .extractCountColumns( dfe1e2, targets )
+        j3[ indexOrder, ] <- .ASpliextractCountColumns( dfe1e2, targets )
 
         # Sum exclusion and inclusion counts by condition
-        sumE1i <- .sumByCond( e1i, targets )
-        sumIe2 <- .sumByCond( ie2, targets )
-        sumJ3  <- .sumByCond( j3,  targets )
+        sumE1i <- .ASplisumByCond( e1i, targets )
+        sumIe2 <- .ASplisumByCond( ie2, targets )
+        sumJ3  <- .ASplisumByCond( j3,  targets )
 
         # Calculates pir
         pirValues <- ( sumE1i + sumIe2 ) / ( sumE1i + sumIe2 + 2 * sumJ3 )
@@ -584,13 +585,13 @@ jcounts <- function( counts,
         }
 
         dfstart  <-
-            .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'start' )
+            .ASpligetJPSIByOverlap( jranges, exranges, jcounts, targets, 'start' )
         dfstart  <- fillAndReorderBy( dfstart , rownames( ec ) )
         dfend    <-
-            .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'end' )
+            .ASpligetJPSIByOverlap( jranges, exranges, jcounts, targets, 'end' )
         dfend    <- fillAndReorderBy( dfend , rownames( ec ) )
         dfwithin <-
-            .getJPSIByOverlap( jranges, exranges, jcounts, targets, 'within' )
+            .ASpligetJPSIByOverlap( jranges, exranges, jcounts, targets, 'within' )
         dfwithin <- fillAndReorderBy( dfwithin , rownames( ec ) )
 
         events   <- mcols( exranges ) $ event
@@ -614,14 +615,14 @@ jcounts <- function( counts,
         colnames(altJ2)[-ncol(altJ2)] <- rownames(targets)
         colnames(altJ3)[-ncol(altJ3)] <- rownames(targets)
 
-        sumAltJ1 <- .sumByCond(
-            .extractCountColumns( altJ1, targets ), targets )
+        sumAltJ1 <- .ASplisumByCond(
+            .ASpliextractCountColumns( altJ1, targets ), targets )
         sumAltJ1[is.na(sumAltJ1)] <- 0
-        sumAltJ2 <- .sumByCond(
-            .extractCountColumns( altJ2, targets ), targets )
+        sumAltJ2 <- .ASplisumByCond(
+            .ASpliextractCountColumns( altJ2, targets ), targets )
         sumAltJ2[is.na(sumAltJ2)] <- 0
-        sumAltJ3 <- .sumByCond(
-            .extractCountColumns( altJ3, targets ), targets )
+        sumAltJ3 <- .ASplisumByCond(
+            .ASpliextractCountColumns( altJ3, targets ), targets )
         sumAltJ3[is.na(sumAltJ3)] <- 0
 
         altPsiValues <-
@@ -630,11 +631,11 @@ jcounts <- function( counts,
         result <- cbind(
             data.frame( event = mcols( exranges[ rownames( altJ1) ] )$ event ),
             data.frame( J1 = altJ1$overlappedSubjectNames ),
-            .extractCountColumns( altJ1, targets ),
+            .ASpliextractCountColumns( altJ1, targets ),
             data.frame( J2 = altJ2$overlappedSubjectNames ),
-            .extractCountColumns( altJ2, targets ),
+            .ASpliextractCountColumns( altJ2, targets ),
             data.frame( J3 = altJ3$overlappedSubjectNames ),
-            .extractCountColumns( altJ3, targets ),
+            .ASpliextractCountColumns( altJ3, targets ),
             altPsiValues )
 
         message("Junctions AltSS PSI completed")
@@ -659,11 +660,11 @@ jcounts <- function( counts,
         colnames(esJ2)[-ncol(esJ2)] <- rownames(targets)
         colnames(esJ3)[-ncol(esJ3)] <- rownames(targets)
 
-        sumEsJ1 <- .sumByCond( .extractCountColumns( esJ1, targets ), targets )
+        sumEsJ1 <- .ASplisumByCond( .ASpliextractCountColumns( esJ1, targets ), targets )
         sumEsJ1[is.na(sumEsJ1)] <- 0
-        sumEsJ2 <- .sumByCond( .extractCountColumns( esJ2, targets ), targets )
+        sumEsJ2 <- .ASplisumByCond( .ASpliextractCountColumns( esJ2, targets ), targets )
         sumEsJ2[is.na(sumEsJ2)] <- 0
-        sumEsJ3 <- .sumByCond( .extractCountColumns( esJ3, targets ), targets )
+        sumEsJ3 <- .ASplisumByCond( .ASpliextractCountColumns( esJ3, targets ), targets )
         sumEsJ3[is.na(sumEsJ3)] <- 0
 
         esPsiValues <-
@@ -672,11 +673,11 @@ jcounts <- function( counts,
         result <- cbind(
             data.frame( event = mcols( exranges[ rownames( esJ1) ] )$ event ),
             data.frame( J1 = esJ1$overlappedSubjectNames ),
-            .extractCountColumns( esJ1, targets ),
+            .ASpliextractCountColumns( esJ1, targets ),
             data.frame( J2 = esJ2$overlappedSubjectNames ),
-            .extractCountColumns( esJ2, targets ),
+            .ASpliextractCountColumns( esJ2, targets ),
             data.frame( J3 = esJ3$overlappedSubjectNames ),
-            .extractCountColumns( esJ3, targets ),
+            .ASpliextractCountColumns( esJ3, targets ),
             esPsiValues )
 
         message("Junctions ES PSI completed")

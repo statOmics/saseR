@@ -120,6 +120,7 @@ library(pracma)
 library(PRROC)
 library(BiocParallel)
 library(data.table)
+library(igraph)
 ```
 
 ## Transforming BAM to count matrices.
