@@ -169,7 +169,7 @@ binGenome function can take a while.
 
 ```{r}
 genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-features <- binGenome(genomeTxDb)
+features <- binGenome(genomeTxDb, logTo = NULL)
 ```
 
 Now that we have the `targets` data.frame containing the samples and BAM-file 
