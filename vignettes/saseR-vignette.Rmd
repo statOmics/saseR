@@ -110,7 +110,7 @@ devtools::install_github("statOmics/saseR")
 
 ```{r, message=FALSE, warning=FALSE}
 library(saseR)
-library(ASpli)
+suppressWarnings(library(ASpli))
 library(edgeR)
 library(DESeq2)
 library(limma)
@@ -169,7 +169,7 @@ binGenome function can take a while.
 
 ```{r}
 genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-features <- binGenome(genomeTxDb, logTo = NULL)
+suppressWarnings(features <- binGenome(genomeTxDb, logTo = NULL))
 ```
 
 Now that we have the `targets` data.frame containing the samples and BAM-file 
