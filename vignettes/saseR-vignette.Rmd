@@ -86,7 +86,7 @@ confounders. It calculates p-values which represent how extreme each
 observation is compared to its estimated distribution. 
 
 Note that one can do a saseR analysis by using readily available count 
-matrices, therefore not requiring to start from BAM-files. 
+matrices, therefore not requiring to start from BAM-files.
 
 
 ## Package installation
@@ -140,8 +140,8 @@ the TxDb format. Also, we include the pathnames of the BAM-files we want to
 include in the analysis.
 
 ```{r}
-gtfFileName <- aspliExampleGTF()
-BAMFiles <- aspliExampleBamList()
+gtfFileName <- ASpli::aspliExampleGTF()
+BAMFiles <- ASpli::aspliExampleBamList()
 
 gtfFileName
 head(BAMFiles)
@@ -164,12 +164,12 @@ targets <- data.frame(
 head(targets)
 ```
 Next, we transform our GTF file to TxDb format, and extract the features from
-the annotation using the `binGenome` function from `ASpli`. Note that the 
+the annotation using the `binGenome` function from `saseR`, which is an adapted copy from `ASpli` as this function is deprecated. Note that the 
 binGenome function can take a while.
 
 ```{r}
-genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-suppressWarnings(features <- binGenome(genomeTxDb, logTo = NULL))
+genomeTxDb <- txdbmaker::makeTxDbFromGFF(gtfFileName)
+features <- binGenome(genomeTxDb, logTo = NULL)
 ```
 
 Now that we have the `targets` data.frame containing the samples and BAM-file 
