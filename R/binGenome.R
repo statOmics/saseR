@@ -1,9 +1,9 @@
 # This code is copied from the ASpli package, with a minor change at line 248, 
-# which gives errors in the original package.
+# which gives errors in the original package. Also, default logTo is changed to NULL.
 
 setGeneric ( name = "binGenome", 
              def = function( genome, geneSymbols = NULL, 
-                             logTo = "ASpli_binFeatures.log", cores = 1 ) standardGeneric( "binGenome" ) )
+                             logTo = NULL, cores = 1 ) standardGeneric( "binGenome" ) )
 
 setMethod(
     f = "binGenome",

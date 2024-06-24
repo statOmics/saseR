@@ -18,8 +18,19 @@ devtools::install_github("statOmics/saseR")
 The installation should only take a few seconds.
 The dependencies of the package are listed in the DESCRIPTION file of the package.
 
-saseR will be soon submitted to Bioconductor.
+saseR is also available at Bioconductor. To install its current version, run;
 
+```{r 'install_bioconductor', eval = FALSE}
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+# The following initializes usage of Bioc devel
+BiocManager::install(version='devel')
+
+BiocManager::install("saseR")
+
+```
 
 ## Issues and bug reports
 
