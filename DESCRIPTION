@@ -2,11 +2,7 @@ Package: saseR
 Type: Package
 Title: Scalable Aberrant Splicing and Expression Retrieval
 Date: 2023-06-01
-<<<<<<< HEAD
-Version: 1.0.1
-=======
-Version: 1.5.0
->>>>>>> upstream/devel
+Version: 1.6.0
 Description: saseR is a highly performant and fast framework for aberrant expression and splicing analyses. The main functions are:
 	\itemize{
 	\item \code{\link{BamtoAspliCounts}} - Process BAM files to ASpli counts
