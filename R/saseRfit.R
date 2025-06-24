@@ -72,20 +72,16 @@
 #' @import edgeR
 #' @import S4Vectors
 #' @import MASS
-#' @import pracma
 #' @import SummarizedExperiment
-#' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
 #' @import methods
 #' @import GenomicRanges
 #' @import DESeq2
-#' @import MatrixGenerics
 #' @import GenomicFeatures
-#' @import knitr
 #' @import IRanges
+#' @import MatrixGenerics
 #' @importFrom dplyr `%>%` group_by summarise across mutate
-#' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam
@@ -176,7 +172,12 @@ saseRfit <- function(se,
         }
 
         if (robustPCA == TRUE){
-            SingularVectors <- PcaHubert(t(deviances),
+            if (!requireNamespace("rrcov", quietly = TRUE)) {
+                stop("The 'rrcov' package is required for the robustPCA 
+                    function. Please install it with 
+                     install.packages('rrcov').")
+            }
+            SingularVectors <- rrcov::PcaHubert(t(deviances),
                                          k = dimensions,
                                          kmax = ncol(se),
                                          scale = FALSE)

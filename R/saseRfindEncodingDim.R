@@ -90,16 +90,13 @@
 #' @import edgeR
 #' @import S4Vectors
 #' @import MASS
-#' @import pracma
 #' @import SummarizedExperiment
-#' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
 #' @import methods
 #' @import GenomicRanges
 #' @import DESeq2
 #' @import IRanges
-#' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table
 #' @importFrom BiocParallel bplapply bpparam

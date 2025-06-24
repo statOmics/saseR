@@ -58,9 +58,7 @@
 #' @import edgeR
 #' @import S4Vectors
 #' @import MASS
-#' @import pracma
 #' @import SummarizedExperiment
-#' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
 #' @import methods
@@ -68,7 +66,6 @@
 #' @import DESeq2
 #' @import IRanges
 #' @importFrom parallel mclapply
-#' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam

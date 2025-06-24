@@ -76,19 +76,15 @@
 #' @import edgeR
 #' @import S4Vectors
 #' @import MASS
-#' @import pracma
 #' @import SummarizedExperiment
-#' @import precrec
 #' @import PRROC
 #' @import BiocGenerics
 #' @import methods
 #' @import GenomicRanges
 #' @import DESeq2
 #' @import IRanges
-#' @import DEXSeq
 #' @import GenomicAlignments
 #' @importFrom dplyr `%>%` group_by summarise across mutate
-#' @importFrom rrcov PcaHubert
 #' @importFrom limma lmFit strsplit2
 #' @importFrom data.table data.table .N
 #' @importFrom BiocParallel bplapply bpparam

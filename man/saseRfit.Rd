@@ -53,11 +53,13 @@ compromising upon power. `edgeR` can be used to perform parameter estimation
 \item{scale}{logical value to scale the deviance residuals before
 performing the singular value decomposition.}
 
-\item{robustPCA}{logical value to perform robust PCA using the `PcaHubert`
+\item{robustPCA}{This argument is in beta phase and should be used carefully.
+Logical value to perform robust PCA using the `PcaHubert`
 function, which decreases the influence of outlier values on the estimated
 latent factors.}
 
-\item{ignore_samples}{character vector with names of samples that are not
+\item{ignore_samples}{This argument is in beta phase and should be used carefully.
+Character vector with names of samples that are not
 used when performing the latent factor estimation and estimation of the
 regression coefficients.}
 }

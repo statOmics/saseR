@@ -116,11 +116,12 @@ library(DESeq2)
 library(limma)
 library(GenomicFeatures)
 library(dplyr)
-library(pracma)
 library(PRROC)
 library(BiocParallel)
 library(data.table)
 library(igraph)
+library(txdbmaker)
+
 ```
 
 ## Transforming BAM to count matrices.
@@ -477,7 +478,6 @@ more information upon their package and functions. Also, we refer to the DEXSeq
 ```{r, message=FALSE, warning=FALSE}
 library(ASpli)
 library(DESeq2)
-library(DEXSeq)
 library(edgeR)
 library(dplyr)
 library(GenomicAlignments)
@@ -495,11 +495,11 @@ BAMFiles <- aspliExampleBamList()
 ```
 
 Next, we extract the exonic parts from the annotation file using the 
-`GenomicFeatures` package. 
+`txdbmaker` package. 
 
 ```{r}
-genomeTxDb <- makeTxDbFromGFF(gtfFileName)
-flattenedAnnotation = exonicParts(genomeTxDb, 
+genomeTxDb <- txdbmaker::makeTxDbFromGFF(gtfFileName)
+flattenedAnnotation = GenomicFeatures::exonicParts(genomeTxDb, 
                                   linked.to.single.gene.only=TRUE )
 ```
 
@@ -510,7 +510,7 @@ to model differential usage/splicing. Make sure to use the correct settings
 for `singleEnd` and `ignore.strand`.
 
 ```{r}
-se = summarizeOverlaps(
+se = GenomicAlignments::summarizeOverlaps(
     flattenedAnnotation,
     BAMFiles, 
     singleEnd=TRUE, 
